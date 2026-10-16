@@ -1,0 +1,83 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { MessengerId } from '@/shared/types/messenger';
+import type { Message } from '@/entities/message/model/message';
+
+export interface Chat {
+  id: string;
+  chatId: string;
+  title: string;
+  phone?: string;
+  messenger: MessengerId;
+  createdAt: number;
+  lastMessagePreview?: string;
+  lastMessageAt?: number;
+}
+
+interface ChatsState {
+  chats: Chat[];
+  activeChatId: string | null;
+  messagesByChat: Record<string, Message[]>;
+  setActiveChat: (id: string | null) => void;
+  addChat: (chat: Chat) => void;
+  removeChat: (id: string) => void;
+  updatePreview: (chatId: string, preview: string, at: number) => void;
+  setMessages: (chatId: string, messages: Message[]) => void;
+  upsertMessage: (chatId: string, message: Message) => void;
+  replaceMessage: (chatId: string, oldId: string, message: Message) => void;
+  markFailed: (chatId: string, messageId: string) => void;
+}
+
+export const useChatsStore = create<ChatsState>()(
+  persist(
+    (set) => ({
+      chats: [],
+      activeChatId: null,
+      messagesByChat: {},
+      setActiveChat: (id) => set({ activeChatId: id }),
+      addChat: (chat) =>
+        set((state) => ({
+          chats: state.chats.some((item) => item.chatId === chat.chatId) ? state.chats : [chat, ...state.chats],
+        })),
+      removeChat: (id) =>
+        set((state) => ({
+          chats: state.chats.filter((item) => item.id !== id),
+          activeChatId: state.activeChatId === id ? null : state.activeChatId,
+        })),
+      updatePreview: (chatId, preview, at) =>
+        set((state) => ({
+          chats: state.chats.map((chat) =>
+            chat.chatId === chatId ? { ...chat, lastMessagePreview: preview, lastMessageAt: at } : chat,
+          ),
+        })),
+      setMessages: (chatId, messages) =>
+        set((state) => ({ messagesByChat: { ...state.messagesByChat, [chatId]: messages } })),
+      upsertMessage: (chatId, message) =>
+        set((state) => {
+          const current = state.messagesByChat[chatId] ?? [];
+          if (current.some((item) => item.id === message.id)) return state;
+          return { messagesByChat: { ...state.messagesByChat, [chatId]: [...current, message] } };
+        }),
+      replaceMessage: (chatId, oldId, message) =>
+        set((state) => {
+          const current = state.messagesByChat[chatId] ?? [];
+          const replaced = current.map((item) => (item.id === oldId ? message : item));
+          if (!replaced.some((item) => item.id === message.id)) replaced.push(message);
+          return { messagesByChat: { ...state.messagesByChat, [chatId]: replaced } };
+        }),
+      markFailed: (chatId, messageId) =>
+        set((state) => ({
+          messagesByChat: {
+            ...state.messagesByChat,
+            [chatId]: (state.messagesByChat[chatId] ?? []).map((item) =>
+              item.id === messageId ? { ...item, status: 'failed' } : item,
+            ),
+          },
+        })),
+    }),
+    {
+      name: 'green-api-chats',
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
+);
