@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
@@ -8,6 +9,7 @@ import { Button } from '@/shared/ui/Button';
 import type { Contact } from '@/shared/api/green-api/types';
 
 export function ContactsList() {
+  const navigate = useNavigate();
   const credentials = useCredentialsStore((state) => state.credentials);
   const addChat = useChatsStore((state) => state.addChat);
   const setActiveChat = useChatsStore((state) => state.setActiveChat);
@@ -38,11 +40,15 @@ export function ContactsList() {
     };
     addChat(existingChat);
     setActiveChat(chatId);
+    navigate('/chats');
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
+        <Button variant="ghost" size="md" onClick={() => navigate('/chats')}>
+          ← Назад к чатам
+        </Button>
         <h2 className="text-lg font-bold text-ga-dark-text">Контакты</h2>
         <Button variant="ghost" size="sm">
           Обновить
@@ -60,18 +66,23 @@ export function ContactsList() {
         ) : (
           contactsQuery.data.map((contact) => {
             const phoneNumber = contact.phoneNumber ?? 0;
+            const canWrite = phoneNumber > 0;
             return (
               <div
                 key={contact.id}
                 className="flex items-center gap-4 px-5 py-4 border-b border-ga-dark-border/50 hover:bg-ga-dark-border/50 transition-colors cursor-pointer group"
-                onClick={() => phoneNumber > 0 && createChatFromContact(contact)}
+                onClick={() => canWrite && createChatFromContact(contact)}
               >
-                <Avatar src={contact.avatar ?? undefined} name={contact.name ?? 'Контакт'} size="md" />
+                <Avatar
+                  src={contact.avatar ?? undefined}
+                  name={contact.name ?? `+${phoneNumber}`}
+                  size="md"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="text-base font-medium text-ga-dark-text truncate">
                     {contact.name ?? `+${phoneNumber}`}
                   </div>
-                  {phoneNumber > 0 ? (
+                  {canWrite ? (
                     <div className="text-sm text-ga-dark-text-secondary truncate">
                       +{phoneNumber}
                     </div>
@@ -79,11 +90,15 @@ export function ContactsList() {
                     <div className="text-sm text-ga-dark-text-secondary truncate">Без номера телефона</div>
                   )}
                 </div>
-                {phoneNumber > 0 ? (
-                  <Button variant="primary" size="sm" onClick={(e) => {
-                    e.stopPropagation();
-                    createChatFromContact(contact);
-                  }}>
+                {canWrite ? (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      createChatFromContact(contact);
+                    }}
+                  >
                     Написать
                   </Button>
                 ) : null}

@@ -51,15 +51,6 @@ export function ChatsPage() {
     retry: 1,
   });
 
-  const statusLabelMap: Record<string, string> = {
-    authorized: 'Авторизован',
-    notAuthorized: 'Требуется авторизация',
-    starting: 'Запуск инстанса',
-    blocked: 'Заблокирован',
-    sleepMode: 'Спящий режим',
-    unknown: 'Статус неизвестен',
-  };
-
   useEffect(() => {
     if (!chatsQuery.data) return;
     const existingByChatId = new Map(chats.map((item) => [item.chatId, item]));
@@ -84,6 +75,15 @@ export function ChatsPage() {
     });
   }, [chatsQuery.data, chats, credentials?.messenger, updateChat]);
 
+  const statusLabelMap: Record<string, string> = {
+    authorized: 'Авторизован',
+    notAuthorized: 'Требуется авторизация',
+    starting: 'Запуск инстанса',
+    blocked: 'Заблокирован',
+    sleepMode: 'Спящий режим',
+    unknown: 'Статус неизвестен',
+  };
+
   const handleThemeToggle = () => {
     const next = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
@@ -102,11 +102,11 @@ export function ChatsPage() {
         onLogout={clearCredentials}
         onThemeToggle={handleThemeToggle}
         status={stateQuery.data ?? 'unknown'}
-        statusLabel={statusLabelMap[stateQuery.data ?? 'unknown'] ?? 'Неизвестно'}
+        statusLabel={statusLabelMap[stateQuery.data ?? 'unknown'] ?? 'Статус неизвестен'}
       />
 
       {stateQuery.data !== 'authorized' ? (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-base text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
+        <div className="bg-amber-50 border-b border-amber-200 px-5 py-3.5 text-base text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
           Инстанс не авторизован. Откройте личный кабинет GREEN-API, авторизуйте номер и очистите webhookUrl.
         </div>
       ) : null}
@@ -115,11 +115,11 @@ export function ChatsPage() {
         {isMobile ? (
           sidebarOpen ? (
             <div className="fixed inset-0 z-50 bg-white dark:bg-[#1f2223] flex flex-col transform transition-transform duration-300 ease-in-out">
-              <div className="p-4 border-b border-ga-dark-border flex items-center justify-between">
+              <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
                 <h2 className="text-lg font-bold text-ga-dark-text">Чаты</h2>
                 <button
                   onClick={toggleSidebar}
-                  className="p-2 text-ga-dark-text hover:bg-ga-dark-border rounded-lg"
+                  className="p-2.5 text-ga-dark-text hover:bg-ga-dark-border rounded-lg"
                   aria-label="Закрыть список чатов"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

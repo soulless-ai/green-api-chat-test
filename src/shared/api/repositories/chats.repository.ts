@@ -20,7 +20,9 @@ export async function getChats(client: GreenApiHttpClient, count?: number): Prom
 }
 
 export async function getAvatar(client: GreenApiHttpClient, chatId: string): Promise<GetAvatarResponse | null> {
-  const result = await client.request<GetAvatarResponse>('GET', 'getAvatar', {}, { chatId });
+  const result = await client.request<GetAvatarResponse>('POST', 'getAvatar', {
+    body: JSON.stringify({ chatId }),
+  });
   return result ?? null;
 }
 
