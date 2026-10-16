@@ -33,7 +33,6 @@ export function NewChatDialog({ open, onClose }: Props) {
     const phone = normalizePhone(values.phone);
     const result = await mutation.mutateAsync(phone);
     if (!result.exist || !result.chatId) return;
-    const profile = messengerProfiles[credentials.messenger];
     addChat({
       id: result.chatId,
       chatId: result.chatId,
@@ -51,9 +50,26 @@ export function NewChatDialog({ open, onClose }: Props) {
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4">
         <h3 className="text-lg font-semibold">Новый чат</h3>
         <div>
-          <label className="block text-sm font-medium mb-1">Номер телефона</label>
-          <input {...register('phone', { validate: (v) => isValidPhone(v) || 'Введите корректный номер' })} className="w-full border rounded-lg px-3 py-2" placeholder="+7 999 123-45-67" />
+          <label className="block text-sm font-medium mb-1" htmlFor="new-chat-phone">Номер телефона</label>
+          <input
+            id="new-chat-phone"
+            {...register('phone', {
+              required: 'Введите номер',
+              validate: (value) => {
+                const digits = normalizePhone(value ?? '');
+                if (!digits) return 'Введите номер';
+                if (digits.length < 11 || digits.length > 12) return 'Номер должен содержать 11 или 12 цифр';
+                return true;
+              },
+            })}
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            placeholder="79991234567"
+            className="w-full border rounded-lg px-3 py-2"
+          />
           {errors.phone ? <p className="text-sm text-red-500 mt-1">{errors.phone.message}</p> : null}
+          <p className="text-xs text-slate-500 mt-1">11 или 12 цифр, без лишних символов. Например: 79991234567.</p>
         </div>
         {mutation.isError ? <p className="text-sm text-red-500">Не удалось проверить номер</p> : null}
         {mutation.data && !mutation.data.exist ? <p className="text-sm text-red-500">Аккаунт не найден в мессенджере</p> : null}
