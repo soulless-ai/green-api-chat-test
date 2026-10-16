@@ -36,7 +36,7 @@ export function ContactsList() {
       phone: String(phoneNumber),
       messenger: credentials?.messenger ?? 'whatsapp',
       createdAt: Date.now(),
-      avatarUrl: contact.avatar ?? null,
+      avatarUrl: null,
     };
     addChat(existingChat);
     setActiveChat(chatId);
@@ -69,12 +69,11 @@ export function ContactsList() {
             const canWrite = phoneNumber > 0;
             return (
               <div
-                key={contact.id}
+                key={contact.chatId}
                 className="flex items-center gap-4 px-5 py-4 border-b border-ga-dark-border/50 hover:bg-ga-dark-border/50 transition-colors cursor-pointer group"
                 onClick={() => canWrite && createChatFromContact(contact)}
               >
                 <Avatar
-                  src={contact.avatar ?? undefined}
                   name={contact.name ?? `+${phoneNumber}`}
                   size="md"
                 />

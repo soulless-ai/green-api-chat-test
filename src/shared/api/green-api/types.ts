@@ -35,18 +35,22 @@ export interface GetAvatarResponse {
 }
 
 export interface Contact {
-  id: string;
+  chatId: string;
   name?: string;
+  contactName?: string;
+  type?: string;
   phoneNumber?: number;
-  avatar?: string;
 }
 
 export interface GetContactInfoResponse {
-  id: string;
+  chatId: string;
   name?: string;
-  phoneNumber?: number;
+  contactName?: string;
+  chatType?: string;
   avatar?: string;
-  isBlocked?: boolean;
+  lastSeen?: number;
+  phoneNumber?: number;
+  phoneNumberTimestamp?: number;
 }
 
 export interface SendTypingResponse {

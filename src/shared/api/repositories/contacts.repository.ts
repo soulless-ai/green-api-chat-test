@@ -6,7 +6,9 @@ export async function getContacts(client: GreenApiHttpClient): Promise<Contact[]
   return Array.isArray(result) ? result : [];
 }
 
-export async function getContactInfo(client: GreenApiHttpClient, phoneNumber: string): Promise<GetContactInfoResponse | null> {
-  const result = await client.request<GetContactInfoResponse>('GET', 'getContactInfo', {}, { phoneNumber });
+export async function getContactInfo(client: GreenApiHttpClient, chatId: string): Promise<GetContactInfoResponse | null> {
+  const result = await client.request<GetContactInfoResponse>('POST', 'getContactInfo', {
+    body: JSON.stringify({ chatId }),
+  });
   return result ?? null;
 }
