@@ -36,11 +36,15 @@ export function Avatar({ src, name = 'Пользователь', size = 'md', cl
   const showFallback = !src || error;
 
   const trimmed = name.trim();
-  const initials = trimmed
-    .split(' ')
-    .map((part) => part.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join('') || trimmed.charAt(0).toUpperCase() || '?';
+  // Для телефонов показываем последние 2 цифры, для имён — первые 2 буквы
+  const isPhone = /^\+?\d{7,}$/.test(trimmed);
+  const initials = isPhone
+    ? trimmed.slice(-2)
+    : trimmed
+        .split(' ')
+        .map((part) => part.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('') || trimmed.slice(0, 2).toUpperCase() || '?';
 
   const wrapperClass = `relative flex-shrink-0 ${SIZE_CLASSES[size]} ${className ?? ''}`;
 

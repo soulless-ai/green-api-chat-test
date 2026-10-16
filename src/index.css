@@ -39,7 +39,7 @@
   --ga-messenger-telegram: #0088cc;
 }
 
-[data-theme='dark'] {
+.dark {
   --ga-main-background: #1a1a1a;
   --ga-second-background: #1f2223;
   --ga-sidebar-trigger-background: #4b4b4b;

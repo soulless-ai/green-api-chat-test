@@ -44,17 +44,14 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        {isMobile ? (
-          <img
-            src="/assets/green-api.svg"
-            alt="GREEN-API"
-            className="h-10 w-auto cursor-pointer"
-          />
-        ) : (
-          <span className="text-lg font-bold tracking-tight text-ga-dark-text cursor-pointer select-none">
+        <div className="flex items-center gap-2 cursor-pointer select-none">
+          {isMobile ? (
+            <img src="/assets/green-api.svg" alt="GREEN-API" className="h-8 w-auto" />
+          ) : null}
+          <span className={`text-lg font-bold tracking-tight ${isMobile ? 'text-ga-dark-text' : 'text-ga-dark-text'} select-none`}>
             GREEN-API Chat
           </span>
-        )}
+        </div>
       </div>
 
       <div className="flex items-center gap-3">

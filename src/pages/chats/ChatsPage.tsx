@@ -8,6 +8,7 @@ import { ChatSidebar } from './components/ChatSidebar';
 import { ChatWindow } from './components/ChatWindow';
 import { NewChatDialog } from './components/NewChatDialog';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
+import { env } from '@/shared/config/env';
 import { Header } from '@/shared/ui/Header';
 import { ChatListItem } from './components/ChatListItem';
 import { getChats } from '@/shared/api/repositories/chats.repository';
@@ -34,28 +35,30 @@ export function ChatsPage() {
       const client = new GreenApiHttpClient(() => credentials);
       return getStateInstance(client);
     },
-    refetchInterval: 60000,
+    refetchInterval: 120000,
+    retry: 1,
+  });
+
+  const chatsQuery = useQuery({
+    queryKey: ['chats'],
+    enabled: Boolean(credentials) && stateQuery.data === 'authorized',
+    queryFn: async () => {
+      if (!credentials) return [];
+      const client = new GreenApiHttpClient(() => credentials);
+      return getChats(client, env.historyPageSize);
+    },
+    refetchInterval: 300000,
+    retry: 1,
   });
 
   const statusLabelMap: Record<string, string> = {
     authorized: 'Авторизован',
-    notAuthorized: 'Не авторизован',
-    starting: 'Запуск',
+    notAuthorized: 'Требуется авторизация',
+    starting: 'Запуск инстанса',
     blocked: 'Заблокирован',
     sleepMode: 'Спящий режим',
-    unknown: 'Неизвестно',
+    unknown: 'Статус неизвестен',
   };
-
-  const chatsQuery = useQuery({
-    queryKey: ['chats'],
-    enabled: Boolean(credentials),
-    queryFn: async () => {
-      if (!credentials) return [];
-      const client = new GreenApiHttpClient(() => credentials);
-      return getChats(client);
-    },
-    refetchInterval: 60000,
-  });
 
   useEffect(() => {
     if (!chatsQuery.data) return;
@@ -85,6 +88,11 @@ export function ChatsPage() {
     const next = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
     document.documentElement.setAttribute('data-theme', next);
+    if (next === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   return (

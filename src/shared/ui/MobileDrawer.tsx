@@ -21,6 +21,11 @@ export function MobileDrawer({ open, onOpenChange, onToggleSidebar }: MobileDraw
     const next = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
     document.documentElement.setAttribute('data-theme', next);
+    if (next === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
     onOpenChange(false);
   };
 

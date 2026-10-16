@@ -14,10 +14,13 @@ const queryClient = new QueryClient({
 
 // восстанавливаем тему из localStorage перед монтированием
 const savedTheme = localStorage.getItem('green-api-ui-theme');
-if (savedTheme === 'dark' || savedTheme === 'light') {
-  document.documentElement.setAttribute('data-theme', savedTheme);
-} else if (!document.documentElement.getAttribute('data-theme')) {
+const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+if (isDark) {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  document.documentElement.classList.add('dark');
+} else {
   document.documentElement.setAttribute('data-theme', 'light');
+  document.documentElement.classList.remove('dark');
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

@@ -20,7 +20,7 @@ export class GreenApiHttpClient {
 
   credentials(): GreenApiCredentials {
     const credentials = this.getCredentials();
-    if (!credentials) throw new ApiError('Credentials are not configured', 401);
+    if (!credentials) throw new ApiError('Укажите данные инстанса', 401);
     return credentials;
   }
 
@@ -66,7 +66,7 @@ export class GreenApiHttpClient {
             await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
             continue;
           }
-          throw new ApiError(response.statusText || 'Request failed', response.status, code, data);
+          throw new ApiError(response.statusText || 'Ошибка запроса', response.status, code, data);
         }
 
         return data as T;
@@ -80,8 +80,8 @@ export class GreenApiHttpClient {
           throw error;
         }
         lastError = error instanceof DOMException && error.name === 'AbortError'
-          ? new ApiError('Request timed out', 408)
-          : new ApiError(error instanceof Error ? error.message : 'Network error', 0);
+          ? new ApiError('Превышено время ожидания запроса', 408)
+          : new ApiError(error instanceof Error ? error.message : 'Ошибка сети', 0);
         if (attempt < 2) {
           await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
           continue;
@@ -91,6 +91,6 @@ export class GreenApiHttpClient {
       }
     }
 
-    throw lastError ?? new ApiError('Request failed', 0);
+    throw lastError ?? new ApiError('Ошибка запроса', 0);
   }
 }
