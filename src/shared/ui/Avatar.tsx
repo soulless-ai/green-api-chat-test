@@ -8,33 +8,48 @@ interface AvatarProps {
 }
 
 const SIZE_CLASSES: Record<NonNullable<AvatarProps['size']>, string> = {
-  sm: 'w-6 h-6',
-  md: 'w-8 h-8',
-  lg: 'w-10 h-10',
+  sm: 'w-7 h-7',
+  md: 'w-9 h-9',
+  lg: 'w-12 h-12',
 };
 
-export function Avatar({ src, name = 'User', size = 'md', className }: AvatarProps) {
+const FALLBACK_COLORS = [
+  'bg-ga-primary',
+  'bg-brand-600',
+  'bg-blue-600',
+  'bg-purple-600',
+  'bg-pink-600',
+  'bg-indigo-600',
+];
+
+function fallbackColorFor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i += 1) {
+    hash = (hash << 5) - hash + name.charCodeAt(i);
+    hash |= 0;
+  }
+  return FALLBACK_COLORS[Math.abs(hash) % FALLBACK_COLORS.length] as string;
+}
+
+export function Avatar({ src, name = 'Пользователь', size = 'md', className }: AvatarProps) {
   const [error, setError] = useState(false);
   const showFallback = !src || error;
 
-  const initials = (name ?? 'User')
+  const trimmed = name.trim();
+  const initials = trimmed
     .split(' ')
     .map((part) => part.charAt(0).toUpperCase())
     .slice(0, 2)
-    .join('');
+    .join('') || trimmed.charAt(0).toUpperCase() || '?';
 
-  const bgColor = 'bg-ga-primary';
-  const textColor = 'text-white';
+  const wrapperClass = `relative flex-shrink-0 ${SIZE_CLASSES[size]} ${className ?? ''}`;
 
   return (
-    <div
-      className={`relative flex-shrink-0 ${SIZE_CLASSES[size]} ${className}`}
-      aria-label={name}
-    >
+    <div className={wrapperClass} aria-label={name}>
       {showFallback ? (
         <div className="flex items-center justify-center rounded-full overflow-hidden">
-          <div className={`w-full h-full flex items-center justify-center rounded-full ${bgColor} ${textColor} text-xs font-semibold leading-none`}>
-            {initials || '?'}
+          <div className={`w-full h-full flex items-center justify-center rounded-full ${fallbackColorFor(trimmed)} text-white text-xs font-semibold leading-none`}>
+            {initials}
           </div>
         </div>
       ) : (

@@ -3,6 +3,7 @@ import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { NotificationPoller } from '@/features/receive-messages/ui/NotificationPoller';
 import { LoginPage } from '@/pages/login/LoginPage';
 import { ChatsPage } from '@/pages/chats/ChatsPage';
+import { ContactsList } from '@/pages/chats/components/ContactsList';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const credentials = useCredentialsStore((state) => state.credentials);
@@ -22,6 +23,14 @@ export default function App() {
           element={
             <RequireAuth>
               <ChatsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/contacts"
+          element={
+            <RequireAuth>
+              <ContactsList />
             </RequireAuth>
           }
         />

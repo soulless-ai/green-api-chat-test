@@ -14,7 +14,12 @@ export const useInstanceUiStore = create<InstanceUiState>()(
       theme: 'light',
       sidebarOpen: true,
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-      setTheme: (theme) => set({ theme }),
+      setTheme: (theme) => {
+        set({ theme });
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('green-api-ui-theme', theme);
+        }
+      },
     }),
     { name: 'green-api-ui', storage: createJSONStorage(() => localStorage) },
   ),

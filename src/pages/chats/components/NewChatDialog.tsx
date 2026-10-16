@@ -4,6 +4,7 @@ import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useCheckAccountMutation } from '@/features/create-chat/hooks/useCheckAccountMutation';
 import { isValidPhone, normalizePhone, formatPhone } from '@/shared/lib/phone';
 import { messengerProfiles } from '@/shared/api/green-api/profiles';
+import { Button } from '@/shared/ui/Button';
 
 interface Props {
   open: boolean;
@@ -76,16 +77,20 @@ export function NewChatDialog({ open, onClose }: Props) {
           </p>
         </div>
         {mutation.isError ? (
-          <p className="text-sm text-ga-dark-danger">Не удалось проверить номер</p>
+          <p className="text-sm text-ga-dark-danger">
+            {mutation.error instanceof Error ? mutation.error.message : 'Не удалось проверить номер'}
+          </p>
         ) : null}
         {mutation.data && !mutation.data.exist ? (
           <p className="text-sm text-ga-dark-danger">Аккаунт не найден в мессенджере</p>
         ) : null}
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="px-3 py-2 rounded-lg border border-ga-dark-border text-ga-dark-text hover:bg-ga-dark-border">Отмена</button>
-          <button type="submit" disabled={mutation.isPending} className="px-3 py-2 rounded-lg bg-ga-primary text-white disabled:opacity-50 hover:bg-brand-600">
+          <Button variant="ghost" size="md" type="button" onClick={onClose}>
+            Отмена
+          </Button>
+          <Button variant="primary" size="md" type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? 'Проверка...' : 'Создать'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

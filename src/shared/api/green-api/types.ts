@@ -61,6 +61,10 @@ export interface DeleteMessageResponse {
   success?: boolean;
 }
 
+export interface SendFileByUploadResponse {
+  idMessage: string;
+}
+
 export interface ChatHistoryItem {
   type: 'incoming' | 'outgoing';
   idMessage: string;

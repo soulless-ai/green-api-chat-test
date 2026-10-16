@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/shared/ui/toast/ToastProvider';
 import { useCredentialsStore, getDefaultMessenger } from '@/entities/credentials/model/credentials';
+import { Button } from '@/shared/ui/Button';
 import { messengerProfiles } from '@/shared/api/green-api/profiles';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getStateInstance, setHttpApiSettings } from '@/shared/api/repositories/instance.repository';
@@ -81,9 +82,9 @@ export function LoginPage() {
           <input {...register('apiUrl')} placeholder="https://api.green-api.com" className="w-full border rounded-lg px-3 py-2" />
         </div>
 
-        <button disabled={isSubmitting} type="submit" className="w-full bg-brand-500 hover:bg-brand-600 text-white rounded-lg py-2 font-medium disabled:opacity-50">
+        <Button variant="primary" size="lg" type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? 'Вход...' : 'Войти'}
-        </button>
+        </Button>
       </form>
     </div>
   );

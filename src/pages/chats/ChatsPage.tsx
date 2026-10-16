@@ -9,8 +9,8 @@ import { ChatWindow } from './components/ChatWindow';
 import { NewChatDialog } from './components/NewChatDialog';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
 import { Header } from '@/shared/ui/Header';
+import { ChatListItem } from './components/ChatListItem';
 import { getChats } from '@/shared/api/repositories/chats.repository';
-import { getAvatar } from '@/shared/api/repositories/chats.repository';
 import { useChatsStore, type Chat } from '@/entities/chat/model/chat';
 import type { ChatSummary } from '@/shared/api/green-api/types';
 
@@ -21,9 +21,8 @@ export function ChatsPage() {
   const setTheme = useInstanceUiStore((state) => state.setTheme);
   const sidebarOpen = useInstanceUiStore((state) => state.sidebarOpen);
   const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
-  const addChat = useChatsStore((state) => state.addChat);
   const updateChat = useChatsStore((state) => state.updateChat);
-  const setAvatarUrl = useChatsStore((state) => state.setAvatarUrl);
+  const chats = useChatsStore((state) => state.chats);
   const isMobile = useIsMobile();
   const [newChatOpen, setNewChatOpen] = useState(false);
 
@@ -35,7 +34,7 @@ export function ChatsPage() {
       const client = new GreenApiHttpClient(() => credentials);
       return getStateInstance(client);
     },
-    refetchInterval: 15000,
+    refetchInterval: 60000,
   });
 
   const statusLabelMap: Record<string, string> = {
@@ -55,44 +54,37 @@ export function ChatsPage() {
       const client = new GreenApiHttpClient(() => credentials);
       return getChats(client);
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   });
 
   useEffect(() => {
     if (!chatsQuery.data) return;
+    const existingByChatId = new Map(chats.map((item) => [item.chatId, item]));
     chatsQuery.data.forEach((summary) => {
+      if (!summary.chatId) return;
+      const existing = existingByChatId.get(summary.chatId);
+      const phoneNumber = summary.phoneNumber ?? 0;
       const chat: Chat = {
         id: summary.chatId,
         chatId: summary.chatId,
-        title: summary.name ?? summary.phoneNumber?.toString() ?? summary.chatId,
-        phone: summary.phoneNumber ? String(summary.phoneNumber) : undefined,
+        title:
+          existing?.title ??
+          summary.name ??
+          (phoneNumber > 0 ? String(phoneNumber) : summary.chatId),
+        phone: existing?.phone ?? (phoneNumber > 0 ? String(phoneNumber) : undefined),
         messenger: credentials?.messenger ?? 'whatsapp',
-        createdAt: Date.now(),
-        unreadCount: summary.unreadCount,
-        avatarUrl: null,
+        createdAt: existing?.createdAt ?? Date.now(),
+        unreadCount: summary.unreadCount ?? existing?.unreadCount,
+        avatarUrl: existing?.avatarUrl ?? null,
       };
-      addChat(chat);
+      updateChat(chat);
     });
-  }, [chatsQuery.data, credentials?.messenger, addChat]);
-
-  useEffect(() => {
-    if (!chatsQuery.data || !credentials) return;
-    const client = new GreenApiHttpClient(() => credentials);
-    (async () => {
-      for (const summary of chatsQuery.data) {
-        try {
-          const avatar = await getAvatar(client, summary.chatId);
-          setAvatarUrl(summary.chatId, avatar?.urlAvatar ?? null);
-        } catch {
-          // аватар не обязателен
-        }
-      }
-    })();
-  }, [chatsQuery.data, credentials, setAvatarUrl]);
+  }, [chatsQuery.data, chats, credentials?.messenger, updateChat]);
 
   const handleThemeToggle = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme === 'light' ? 'dark' : 'light');
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    document.documentElement.setAttribute('data-theme', next);
   };
 
   return (
@@ -106,15 +98,27 @@ export function ChatsPage() {
       />
 
       {stateQuery.data !== 'authorized' ? (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-base text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
           Инстанс не авторизован. Откройте личный кабинет GREEN-API, авторизуйте номер и очистите webhookUrl.
         </div>
       ) : null}
 
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row">
+      <main className="flex-1 min-h-0 flex flex-col md:flex-row">
         {isMobile ? (
           sidebarOpen ? (
-            <div className="w-full min-h-0 flex flex-col bg-white dark:bg-[#1f2223] md:hidden">
+            <div className="fixed inset-0 z-50 bg-white dark:bg-[#1f2223] flex flex-col transform transition-transform duration-300 ease-in-out">
+              <div className="p-4 border-b border-ga-dark-border flex items-center justify-between">
+                <h2 className="text-lg font-bold text-ga-dark-text">Чаты</h2>
+                <button
+                  onClick={toggleSidebar}
+                  className="p-2 text-ga-dark-text hover:bg-ga-dark-border rounded-lg"
+                  aria-label="Закрыть список чатов"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
             </div>
           ) : (
@@ -130,7 +134,7 @@ export function ChatsPage() {
             <ChatWindow />
           </>
         )}
-      </div>
+      </main>
       {newChatOpen ? <NewChatDialog open onClose={() => setNewChatOpen(false)} /> : null}
     </div>
   );

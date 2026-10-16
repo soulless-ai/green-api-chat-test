@@ -60,7 +60,9 @@ export class GreenApiHttpClient {
 
         if (!response.ok) {
           const code = typeof data === 'object' && data !== null ? String((data as Record<string, unknown>).error ?? '') : undefined;
-          if (response.status >= 500 && attempt < 2) {
+          const shouldRetry =
+            (response.status >= 500 || response.status === 429) && attempt < 2;
+          if (shouldRetry) {
             await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
             continue;
           }

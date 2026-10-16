@@ -12,6 +12,14 @@ const queryClient = new QueryClient({
   },
 });
 
+// восстанавливаем тему из localStorage перед монтированием
+const savedTheme = localStorage.getItem('green-api-ui-theme');
+if (savedTheme === 'dark' || savedTheme === 'light') {
+  document.documentElement.setAttribute('data-theme', savedTheme);
+} else if (!document.documentElement.getAttribute('data-theme')) {
+  document.documentElement.setAttribute('data-theme', 'light');
+}
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>

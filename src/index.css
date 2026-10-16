@@ -25,7 +25,7 @@
   --ga-primary-background: #e9ffdb;
   --ga-message-preview-bg: #f0eae3;
   --ga-message-card-bg: rgb(210, 254, 214);
-  --ga-message-card-description-bg: rgb(0, 0, 0, 0.04);
+  --ga-message-card-description-bg: rgba(0, 0, 0, 0.04);
   --ga-code-example-bg: #f0f0f0;
   --ga-chat-bg-opacity: 1;
   --ga-wa-type-bg-color: rgb(233, 251, 240);
@@ -75,6 +75,10 @@
   --ga-messenger-telegram: #0088cc;
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -91,6 +95,22 @@ a:hover {
   color: var(--ga-link-hover-color);
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -101,4 +121,22 @@ a:hover {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ga-main-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ga-scrollbar-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ga-primary-color);
 }
