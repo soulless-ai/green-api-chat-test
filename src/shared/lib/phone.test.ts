@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isValidPhone, normalizePhone } from './phone';
+import { isValidPhone, normalizePhone, formatPhone } from './phone';
 
 describe('phone helpers', () => {
   it('normalizes phone numbers', () => {
@@ -9,5 +9,18 @@ describe('phone helpers', () => {
   it('validates 11-12 digit phones only', () => {
     expect(isValidPhone('79991234567')).toBe(true);
     expect(isValidPhone('123')).toBe(false);
+  });
+
+  it('validates international 12-digit phone (e.g. Turkey +90)', () => {
+    expect(isValidPhone('+905338298328')).toBe(true);
+    expect(isValidPhone('+905338298')).toBe(false);
+  });
+
+  it('formats Russian phone with mask', () => {
+    expect(formatPhone('79991234567')).toBe('+7 (999) 123-45-67');
+  });
+
+  it('formats international phone with plus', () => {
+    expect(formatPhone('905338298328')).toBe('+905338298328');
   });
 });

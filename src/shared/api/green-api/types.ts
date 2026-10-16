@@ -5,6 +5,7 @@ export interface GreenApiCredentials {
   apiTokenInstance: string;
   apiUrl?: string;
   messenger: MessengerId;
+  avatarUrl?: string | null;
 }
 
 export type InstanceState = 'authorized' | 'notAuthorized' | 'starting' | 'blocked' | 'sleepMode' | 'unknown';
@@ -19,6 +20,45 @@ export interface CheckAccountResponse {
 
 export interface SendMessageResponse {
   idMessage: string;
+}
+
+export interface ChatSummary {
+  chatId: string;
+  name?: string;
+  type?: string;
+  phoneNumber?: number;
+  unreadCount?: number;
+}
+
+export interface GetAvatarResponse {
+  urlAvatar?: string;
+}
+
+export interface Contact {
+  id: string;
+  name?: string;
+  phoneNumber?: number;
+  avatar?: string;
+}
+
+export interface GetContactInfoResponse {
+  id: string;
+  name?: string;
+  phoneNumber?: number;
+  avatar?: string;
+  isBlocked?: boolean;
+}
+
+export interface SendTypingResponse {
+  success?: boolean;
+}
+
+export interface ReadChatResponse {
+  success?: boolean;
+}
+
+export interface DeleteMessageResponse {
+  success?: boolean;
 }
 
 export interface ChatHistoryItem {

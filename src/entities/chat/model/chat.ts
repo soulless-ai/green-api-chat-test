@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { MessengerId } from '@/shared/types/messenger';
 import type { Message } from '@/entities/message/model/message';
+import type { Contact } from '@/shared/api/green-api/types';
 
 export interface Chat {
   id: string;
@@ -12,16 +13,22 @@ export interface Chat {
   createdAt: number;
   lastMessagePreview?: string;
   lastMessageAt?: number;
+  avatarUrl?: string | null;
+  unreadCount?: number;
 }
 
 interface ChatsState {
   chats: Chat[];
   activeChatId: string | null;
   messagesByChat: Record<string, Message[]>;
+  contacts: Contact[];
   setActiveChat: (id: string | null) => void;
   addChat: (chat: Chat) => void;
+  updateChat: (chat: Chat) => void;
   removeChat: (id: string) => void;
   updatePreview: (chatId: string, preview: string, at: number) => void;
+  setAvatarUrl: (chatId: string, avatarUrl: string | null) => void;
+  setContacts: (contacts: Contact[]) => void;
   setMessages: (chatId: string, messages: Message[]) => void;
   upsertMessage: (chatId: string, message: Message) => void;
   updateMessageStatus: (chatId: string, messageId: string, status: Message['status']) => void;
@@ -35,10 +42,17 @@ export const useChatsStore = create<ChatsState>()(
       chats: [],
       activeChatId: null,
       messagesByChat: {},
+      contacts: [],
       setActiveChat: (id) => set({ activeChatId: id }),
       addChat: (chat) =>
         set((state) => ({
           chats: state.chats.some((item) => item.chatId === chat.chatId) ? state.chats : [chat, ...state.chats],
+        })),
+      updateChat: (chat) =>
+        set((state) => ({
+          chats: state.chats.some((item) => item.chatId === chat.chatId)
+            ? state.chats.map((item) => (item.chatId === chat.chatId ? chat : item))
+            : [chat, ...state.chats],
         })),
       removeChat: (id) =>
         set((state) => ({
@@ -51,6 +65,11 @@ export const useChatsStore = create<ChatsState>()(
             chat.chatId === chatId ? { ...chat, lastMessagePreview: preview, lastMessageAt: at } : chat,
           ),
         })),
+      setAvatarUrl: (chatId, avatarUrl) =>
+        set((state) => ({
+          chats: state.chats.map((chat) => (chat.chatId === chatId ? { ...chat, avatarUrl } : chat)),
+        })),
+      setContacts: (contacts) => set({ contacts }),
       setMessages: (chatId, messages) =>
         set((state) => ({ messagesByChat: { ...state.messagesByChat, [chatId]: messages } })),
       upsertMessage: (chatId, message) =>

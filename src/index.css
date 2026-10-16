@@ -2,14 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --chat-bg: #efeae2;
-  --panel: #ffffff;
-  --border: #e5e7eb;
+:root,
+[data-theme='light'] {
+  --ga-main-background: #fff;
+  --ga-second-background: #f0f2f5;
+  --ga-sidebar-trigger-background: #001529;
+  --ga-text-color: #000000e0;
+  --ga-text-color-secondary: rgba(0, 0, 0, 0.55);
+  --ga-primary-color: #3b9702;
+  --ga-primary-transparent-color: #b8daa3;
+  --ga-danger-color: #d1242f;
+  --ga-border-color: #d9d9d9;
+  --ga-link-color: #3b9702;
+  --ga-link-hover-color: #3b9702;
+  --ga-authorized-status-color: #3b9702;
+  --ga-authorized-status-bg-color: #eeffe3;
+  --ga-not-authorized-status-color: #d1242f;
+  --ga-not-authorized-status-bg-color: #f8d4d6;
+  --ga-starting-status-color: #1890ff;
+  --ga-warning-status-color: #ff9100;
+  --ga-blocked-status-color: rgb(255, 39, 39);
+  --ga-primary-background: #e9ffdb;
+  --ga-message-preview-bg: #f0eae3;
+  --ga-message-card-bg: rgb(210, 254, 214);
+  --ga-message-card-description-bg: rgb(0, 0, 0, 0.04);
+  --ga-code-example-bg: #f0f0f0;
+  --ga-chat-bg-opacity: 1;
+  --ga-wa-type-bg-color: rgb(233, 251, 240);
+  --ga-wa-type-text-color: rgb(37, 211, 102);
+  --ga-max-type-bg-color: rgba(214, 216, 253, 1);
+  --ga-max-type-text-color: rgb(50, 60, 244);
+  --ga-scrollbar-color: #3b9702;
+  --ga-neutral-color: #e0e0e0;
+  --ga-messenger-whatsapp: #25d366;
+  --ga-messenger-max: rgb(50, 60, 244);
+  --ga-messenger-telegram: #0088cc;
+}
+
+[data-theme='dark'] {
+  --ga-main-background: #1a1a1a;
+  --ga-second-background: #1f2223;
+  --ga-sidebar-trigger-background: #4b4b4b;
+  --ga-text-color: #fff;
+  --ga-text-color-secondary: rgba(255, 255, 255, 0.65);
+  --ga-primary-color: #3b9702;
+  --ga-primary-transparent-color: rgba(59, 151, 2, 0.4);
+  --ga-danger-color: #d1242f;
+  --ga-border-color: #313131;
+  --ga-link-color: #3b9702;
+  --ga-link-hover-color: #62ff67;
+  --ga-authorized-status-color: #3b9702;
+  --ga-authorized-status-bg-color: #264500;
+  --ga-not-authorized-status-color: #ff3535;
+  --ga-not-authorized-status-bg-color: rgba(255, 53, 53, 0.12);
+  --ga-starting-status-color: #1890ff;
+  --ga-warning-status-color: #ff6600;
+  --ga-blocked-status-color: rgb(152, 0, 0);
+  --ga-primary-background: #3b9702;
+  --ga-message-preview-bg: rgb(23, 23, 23);
+  --ga-message-card-bg: rgb(40, 40, 40);
+  --ga-message-card-description-bg: rgba(0, 0, 0, 0.25);
+  --ga-code-example-bg: #282a36;
+  --ga-chat-bg-opacity: 0.2;
+  --ga-wa-type-bg-color: rgba(0, 255, 98, 0.3);
+  --ga-wa-type-text-color: rgb(255, 255, 255);
+  --ga-max-type-bg-color: rgba(24, 34, 226, 0.3);
+  --ga-max-type-text-color: rgb(255, 255, 255);
+  --ga-scrollbar-color: #3b9702;
+  --ga-neutral-color: #e0e0e0;
+  --ga-messenger-whatsapp: #25d366;
+  --ga-messenger-max: rgb(50, 60, 244);
+  --ga-messenger-telegram: #0088cc;
 }
 
 body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background: #f0f2f5;
+  background: var(--ga-main-background);
+  color: var(--ga-text-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+a {
+  color: var(--ga-link-color);
+}
+
+a:hover {
+  color: var(--ga-link-hover-color);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

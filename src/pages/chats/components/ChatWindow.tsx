@@ -5,11 +5,13 @@ import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getChatHistory } from '@/shared/api/repositories/chats.repository';
 import { sendMessage } from '@/shared/api/repositories/messages.repository';
+import { sendTyping, readChat } from '@/shared/api/repositories/chats.repository';
 import { mapHistoryItem } from '@/features/receive-messages/lib/mapHistory';
 import { createTempId } from '@/shared/lib/id';
 import { formatTime } from '@/shared/lib/date';
 import { useToast } from '@/shared/ui/toast/ToastProvider';
 import { messengerProfiles } from '@/shared/api/green-api/profiles';
+import { Avatar } from '@/shared/ui/Avatar';
 
 export function ChatWindow() {
   const credentials = useCredentialsStore((state) => state.credentials);
@@ -23,6 +25,7 @@ export function ChatWindow() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [draft, setDraft] = useState('');
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const chat = useChatsStore((state) => state.chats.find((item) => item.id === activeChatId));
@@ -51,7 +54,11 @@ export function ChatWindow() {
       merged.sort((a, b) => a.timestamp - b.timestamp);
       setMessages(activeChatId, merged);
     }
-  }, [activeChatId, historyQuery.data, messagesByChat, setMessages]);
+    // помечаем чат прочитанным при открытии
+    if (credentials && chat) {
+      readChat(new GreenApiHttpClient(() => credentials), chat.chatId).catch(() => {});
+    }
+  }, [activeChatId, historyQuery.data, messagesByChat, setMessages, credentials, chat]);
 
   const sendMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -61,6 +68,10 @@ export function ChatWindow() {
     },
     onMutate: async (text) => {
       if (!activeChatId) return;
+      // индикатор набора текста
+      if (credentials && chat) {
+        sendTyping(new GreenApiHttpClient(() => credentials), chat.chatId).catch(() => {});
+      }
       const tempId = createTempId();
       const optimistic = {
         id: tempId,
@@ -100,8 +111,18 @@ export function ChatWindow() {
     listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [sorted.length]);
 
+  useEffect(() => {
+    // сброс индикатора набора через 3 секунды
+    const timer = setTimeout(() => setTypingUsers([]), 3000);
+    return () => clearTimeout(timer);
+  }, [typingUsers]);
+
   if (!activeChatId || !chat) {
-    return <div className="flex-1 flex items-center justify-center text-slate-500">Выберите или создайте чат</div>;
+    return (
+      <div className="flex-1 flex items-center justify-center text-ga-dark-text-secondary">
+        Выберите или создайте чат
+      </div>
+    );
   }
 
   const handleSend = () => {
@@ -116,29 +137,45 @@ export function ChatWindow() {
   };
 
   return (
-    <section className="flex-1 flex flex-col bg-[#efeae2]">
-      <header className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="font-semibold">{chat.title}</div>
-        <div className="text-xs text-slate-500">{chat.phone ?? chat.chatId}</div>
+    <section className="flex-1 flex flex-col bg-[#efeae2] dark:bg-[#1a1a1a]">
+      <header className="bg-white dark:bg-[#1f2223] border-b border-ga-dark-border px-4 py-3">
+        <div className="flex items-center gap-3">
+          <Avatar src={chat.avatarUrl ?? undefined} name={chat.title} size="lg" />
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-ga-dark-text truncate">{chat.title}</div>
+            <div className="text-xs text-ga-dark-text-secondary truncate">
+              {chat.phone ?? chat.chatId}
+            </div>
+          </div>
+        </div>
+        {typingUsers.length > 0 && (
+          <div className="mt-1 text-xs font-medium text-ga-dark-primary">
+            {typingUsers.join(', ')} печатает…
+          </div>
+        )}
       </header>
 
       <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
         {sorted.map((message) => (
           <div key={message.id} className={`flex ${message.direction === 'out' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[75%] rounded-2xl px-3 py-2 shadow-sm ${message.direction === 'out' ? 'bg-[#d9fdd3]' : 'bg-white'}`}>
-              {message.senderName && message.direction === 'in' ? <div className="text-xs font-medium text-brand-700">{message.senderName}</div> : null}
+            <div className={`max-w-[75%] rounded-2xl px-3 py-2 shadow-sm ${message.direction === 'out' ? 'bg-ga-message-card-bg text-ga-dark-text' : 'bg-white dark:bg-[#1f2223] text-ga-dark-text border border-ga-dark-border'}`}>
+              {message.senderName && message.direction === 'in' ? (
+                <div className="text-xs font-medium text-ga-primary">{message.senderName}</div>
+              ) : null}
               <div className="whitespace-pre-wrap break-words">{message.text}</div>
-              <div className="text-[10px] text-slate-500 text-right mt-1 flex items-center justify-end gap-1">
+              <div className="text-[10px] text-ga-dark-text-secondary text-right mt-1 flex items-center justify-end gap-1">
                 <span>{formatTime(message.timestamp)}</span>
-                {message.direction === 'out' ? <span>{message.status === 'failed' ? '✗' : message.status === 'pending' ? '…' : '✓'}</span> : null}
+                {message.direction === 'out' ? (
+                  <span>{message.status === 'failed' ? '✗' : message.status === 'pending' ? '…' : '✓'}</span>
+                ) : null}
               </div>
             </div>
           </div>
         ))}
-        {historyQuery.isLoading ? <p className="text-center text-sm text-slate-500">Загрузка истории…</p> : null}
+        {historyQuery.isLoading ? <p className="text-center text-sm text-ga-dark-text-secondary">Загрузка истории…</p> : null}
       </div>
 
-      <div className="bg-white border-t border-slate-200 p-3 flex gap-2">
+      <div className="bg-white dark:bg-[#1f2223] border-t border-ga-dark-border p-3 flex gap-2">
         <textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
@@ -150,9 +187,13 @@ export function ChatWindow() {
           }}
           rows={1}
           placeholder="Сообщение"
-          className="flex-1 border rounded-2xl px-3 py-2 resize-none"
+          className="flex-1 border border-ga-dark-border rounded-2xl px-3 py-2 resize-none text-ga-dark-text bg-white dark:bg-[#1a1a1a] focus:ring-2 focus:ring-ga-primary"
         />
-        <button onClick={handleSend} disabled={sendMutation.isPending} className="bg-brand-500 text-white rounded-2xl px-4 py-2 disabled:opacity-50">
+        <button
+          onClick={handleSend}
+          disabled={sendMutation.isPending}
+          className="bg-ga-primary text-white rounded-2xl px-4 py-2 disabled:opacity-50 hover:bg-brand-600"
+        >
           Отправить
         </button>
       </div>

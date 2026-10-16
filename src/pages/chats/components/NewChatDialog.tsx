@@ -1,9 +1,8 @@
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useCheckAccountMutation } from '@/features/create-chat/hooks/useCheckAccountMutation';
-import { isValidPhone, normalizePhone } from '@/shared/lib/phone';
+import { isValidPhone, normalizePhone, formatPhone } from '@/shared/lib/phone';
 import { messengerProfiles } from '@/shared/api/green-api/profiles';
 
 interface Props {
@@ -17,27 +16,24 @@ export function NewChatDialog({ open, onClose }: Props) {
   const setActiveChat = useChatsStore((state) => state.setActiveChat);
   const mutation = useCheckAccountMutation();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<{ phone: string }>();
+  const profile = credentials ? messengerProfiles[credentials.messenger] : messengerProfiles.whatsapp;
 
-  useEffect(() => {
-    if (!open) {
-      reset();
-      mutation.reset();
-    }
-  }, [open, reset, mutation]);
+  const { register, handleSubmit, formState: { errors } } = useForm<{ phone: string }>();
 
   if (!open || !credentials) return null;
 
   const onSubmit = async (values: { phone: string }) => {
-    if (!isValidPhone(values.phone)) return;
-    const phone = normalizePhone(values.phone);
-    const result = await mutation.mutateAsync(phone);
+    const digits = normalizePhone(values.phone);
+    if (!digits || !isValidPhone(values.phone, profile.phoneLengths[0], profile.phoneLengths[1])) return;
+
+    const result = await mutation.mutateAsync(digits);
     if (!result.exist || !result.chatId) return;
+
     addChat({
       id: result.chatId,
       chatId: result.chatId,
-      title: phone,
-      phone,
+      title: formatPhone(digits),
+      phone: digits,
       messenger: credentials.messenger,
       createdAt: Date.now(),
     });
@@ -47,10 +43,12 @@ export function NewChatDialog({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true">
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4">
-        <h3 className="text-lg font-semibold">Новый чат</h3>
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-[#1f2223] rounded-2xl p-6 w-full max-w-sm space-y-4">
+        <h3 className="text-lg font-semibold text-ga-dark-text">Новый чат</h3>
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="new-chat-phone">Номер телефона</label>
+          <label className="block text-sm font-medium mb-1 text-ga-dark-text" htmlFor="new-chat-phone">
+            Номер телефона
+          </label>
           <input
             id="new-chat-phone"
             {...register('phone', {
@@ -58,24 +56,34 @@ export function NewChatDialog({ open, onClose }: Props) {
               validate: (value) => {
                 const digits = normalizePhone(value ?? '');
                 if (!digits) return 'Введите номер';
-                if (digits.length < 11 || digits.length > 12) return 'Номер должен содержать 11 или 12 цифр';
+                if (!isValidPhone(value ?? '', profile.phoneLengths[0], profile.phoneLengths[1])) {
+                  return `Номер должен содержать ${profile.phoneLengths.join(' или ')} цифр`;
+                }
                 return true;
               },
             })}
             type="tel"
             inputMode="numeric"
             autoComplete="tel-national"
-            placeholder="79991234567"
-            className="w-full border rounded-lg px-3 py-2"
+            placeholder={formatPhone('79991234567')}
+            className="w-full border border-ga-dark-border rounded-lg px-3 py-2 text-ga-dark-text bg-white dark:bg-[#1a1a1a] focus:ring-2 focus:ring-ga-primary"
           />
-          {errors.phone ? <p className="text-sm text-red-500 mt-1">{errors.phone.message}</p> : null}
-          <p className="text-xs text-slate-500 mt-1">11 или 12 цифр, без лишних символов. Например: 79991234567.</p>
+          {errors.phone ? (
+            <p className="text-sm text-ga-dark-danger mt-1">{errors.phone.message}</p>
+          ) : null}
+          <p className="text-xs text-ga-dark-text-secondary mt-1">
+            {`${profile.phoneLengths.join(' или ')} цифр, без лишних символов. Например: ${formatPhone('79991234567')}.`}
+          </p>
         </div>
-        {mutation.isError ? <p className="text-sm text-red-500">Не удалось проверить номер</p> : null}
-        {mutation.data && !mutation.data.exist ? <p className="text-sm text-red-500">Аккаунт не найден в мессенджере</p> : null}
+        {mutation.isError ? (
+          <p className="text-sm text-ga-dark-danger">Не удалось проверить номер</p>
+        ) : null}
+        {mutation.data && !mutation.data.exist ? (
+          <p className="text-sm text-ga-dark-danger">Аккаунт не найден в мессенджере</p>
+        ) : null}
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="px-3 py-2 rounded-lg border">Отмена</button>
-          <button type="submit" disabled={mutation.isPending} className="px-3 py-2 rounded-lg bg-brand-500 text-white disabled:opacity-50">
+          <button type="button" onClick={onClose} className="px-3 py-2 rounded-lg border border-ga-dark-border text-ga-dark-text hover:bg-ga-dark-border">Отмена</button>
+          <button type="submit" disabled={mutation.isPending} className="px-3 py-2 rounded-lg bg-ga-primary text-white disabled:opacity-50 hover:bg-brand-600">
             {mutation.isPending ? 'Проверка...' : 'Создать'}
           </button>
         </div>
