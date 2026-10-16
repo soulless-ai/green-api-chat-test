@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
+import { useInstanceUiStore } from '@/entities/instance/model/instance';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getChatHistory, sendTyping, readChat, sendFileByUpload } from '@/shared/api/repositories/chats.repository';
 import { sendMessage } from '@/shared/api/repositories/messages.repository';
@@ -13,6 +14,7 @@ import { messengerProfiles } from '@/shared/api/green-api/profiles';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { EmojiPicker } from '@/shared/ui/EmojiPicker';
+import { useIsMobile } from '@/shared/lib/useIsMobile';
 import type { Message } from '@/entities/message/model/message';
 import type { SendFileByUploadResponse } from '@/shared/api/green-api/types';
 
@@ -31,6 +33,8 @@ export function ChatWindow() {
   const replaceMessage = useChatsStore((state) => state.replaceMessage);
   const markFailed = useChatsStore((state) => state.markFailed);
   const updatePreview = useChatsStore((state) => state.updatePreview);
+  const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [draft, setDraft] = useState('');
@@ -238,6 +242,17 @@ export function ChatWindow() {
     <section className="flex-1 flex flex-col bg-[#efeae2] dark:bg-[#1a1a1a]">
       <header className="bg-white dark:bg-[#1f2223] border-b border-ga-dark-border px-5 py-4">
         <div className="flex items-center gap-4">
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="p-2 text-ga-dark-text hover:bg-ga-dark-border rounded-lg"
+              aria-label="Назад к списку чатов"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
           <Avatar src={chat.avatarUrl ?? undefined} name={chat.title} size="lg" />
           <div className="flex-1 min-w-0">
             <div className="text-lg font-bold text-ga-dark-text truncate">{chat.title}</div>
