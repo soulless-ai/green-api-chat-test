@@ -114,21 +114,28 @@ export function ChatsPage() {
       <main className="flex-1 min-h-0 flex flex-col md:flex-row">
         {isMobile ? (
           sidebarOpen ? (
-            <div className="fixed inset-0 z-50 bg-white dark:bg-[#1f2223] flex flex-col transform transition-transform duration-300 ease-in-out">
-              <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
-                <h2 className="text-lg font-bold text-ga-dark-text">Чаты</h2>
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2.5 text-ga-dark-text hover:bg-ga-dark-border rounded-lg"
-                  aria-label="Закрыть список чатов"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            <>
+              <div
+                className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+                onClick={toggleSidebar}
+                aria-hidden="true"
+              />
+              <div className={`fixed inset-y-0 right-0 z-60 w-full max-w-md bg-white dark:bg-[#1f2223] border-l border-ga-dark-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-ga-dark-text">Чаты</h2>
+                  <button
+                    onClick={toggleSidebar}
+                    className="p-2.5 text-ga-dark-text hover:bg-ga-dark-border rounded-lg transition-colors"
+                    aria-label="Закрыть список чатов"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
               </div>
-              <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
-            </div>
+            </>
           ) : (
             <div className="flex-1 min-h-0 w-full md:hidden">
               <ChatWindow />

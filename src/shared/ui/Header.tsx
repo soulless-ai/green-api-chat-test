@@ -33,12 +33,12 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
   const statusColor = statusColors[status] ?? statusColors.unknown ?? { text: 'text-ga-dark-text-secondary', bg: 'bg-ga-dark-border' };
 
   return (
-    <nav className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border-b border-ga-dark-border px-4 py-3.5 flex items-center justify-between z-20 sticky top-0" aria-label="Основная навигация">
+    <nav className="bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-b border-ga-dark-border px-4 py-3.5 flex items-center justify-between z-40 sticky top-0" aria-label="Основная навигация">
       <div className="flex items-center gap-3 shrink-0">
         <button
           onClick={onToggleSidebar}
-          className="md:hidden p-2.5 text-ga-dark-text hover:bg-ga-dark-border rounded-lg"
-          aria-label="Открыть меню"
+          className="p-2.5 text-ga-dark-text hover:bg-ga-dark-border/50 rounded-lg transition-colors"
+          aria-label="Открыть список чатов"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -48,7 +48,7 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
           {isMobile ? (
             <img src="/assets/green-api.svg" alt="GREEN-API" className="h-8 w-auto" />
           ) : null}
-          <span className={`text-lg font-bold tracking-tight ${isMobile ? 'text-ga-dark-text' : 'text-ga-dark-text'} select-none`}>
+          <span className="text-lg font-bold tracking-tight text-ga-dark-text select-none">
             GREEN-API Chat
           </span>
         </div>
@@ -98,9 +98,16 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
         </div>
 
         {isMobile ? (
-          <div className="relative">
-            <Button variant="ghost" size="sm" onClick={() => setDrawerOpen(true)} aria-label="Ещё" aria-expanded={drawerOpen}>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="relative z-50">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Ещё"
+              aria-expanded={drawerOpen}
+              className="z-50"
+            >
+              <svg className="w-6 h-6 z-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01" />
               </svg>
             </Button>
