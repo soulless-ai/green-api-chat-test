@@ -20,13 +20,16 @@ export function NotificationPoller() {
     const client = new GreenApiHttpClient(() => credentials);
     const profile = messengerProfiles[credentials.messenger];
     void profile;
-    let backoff = env.pollBackoffBaseMs;
 
     const run = async () => {
-      const state = await getStateInstance(client).catch(() => 'unknown' as const);
-      if (state !== 'authorized') return;
-
       while (running.current) {
+        // Проверяем состояние перед каждым опросом — останавливаемся если не авторизован
+        const state = await getStateInstance(client).catch(() => 'unknown' as const);
+        if (state !== 'authorized') {
+          await new Promise((resolve) => window.setTimeout(resolve, 5000));
+          continue;
+        }
+
         try {
           const notification = await receiveNotification(client, env.pollReceiveTimeoutSec);
           if (!running.current) break;
@@ -71,10 +74,8 @@ export function NotificationPoller() {
           }
 
           await deleteNotification(client, notification.receiptId);
-          backoff = env.pollBackoffBaseMs;
         } catch {
-          await new Promise((resolve) => window.setTimeout(resolve, backoff));
-          backoff = Math.min(backoff * 2, env.pollBackoffMaxMs);
+          await new Promise((resolve) => window.setTimeout(resolve, env.pollBackoffBaseMs));
         }
       }
     };

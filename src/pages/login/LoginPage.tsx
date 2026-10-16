@@ -5,7 +5,7 @@ import { useCredentialsStore, getDefaultMessenger } from '@/entities/credentials
 import { Button } from '@/shared/ui/Button';
 import { messengerProfiles } from '@/shared/api/green-api/profiles';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
-import { getStateInstance, setHttpApiSettings } from '@/shared/api/repositories/instance.repository';
+import { getStateInstance, setHttpApiSettings, getAccountSettings } from '@/shared/api/repositories/instance.repository';
 import type { MessengerId } from '@/shared/types/messenger';
 
 interface FormValues {
@@ -41,7 +41,23 @@ export function LoginPage() {
     const client = new GreenApiHttpClient(() => useCredentialsStore.getState().credentials);
     try {
       const state = await getStateInstance(client);
-      if (state === 'authorized') await setHttpApiSettings(client);
+      if (state === 'authorized') {
+        await setHttpApiSettings(client);
+        try {
+          const account = await getAccountSettings(client);
+          if (account) {
+            setCredentials(
+              {
+                ...useCredentialsStore.getState().credentials!,
+                avatarUrl: account.avatar ?? null,
+              },
+              true,
+            );
+          }
+        } catch {
+          // аватар не обязателен
+        }
+      }
     } catch (error) {
       toast.show(error instanceof Error ? error.message : 'Не удалось проверить инстанс', 'error');
     }

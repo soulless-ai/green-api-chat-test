@@ -65,6 +65,18 @@ export interface SendFileByUploadResponse {
   idMessage: string;
 }
 
+export interface AccountSettings {
+  idInstance?: string;
+  wid?: string;
+  stateInstance?: string;
+  chatId?: string;
+  phoneNumber?: string;
+  name?: string;
+  avatar?: string;
+  about?: string;
+  isBusiness?: boolean;
+}
+
 export interface ChatHistoryItem {
   type: 'incoming' | 'outgoing';
   idMessage: string;

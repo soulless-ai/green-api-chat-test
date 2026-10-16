@@ -41,7 +41,7 @@ export function ChatsPage() {
 
   const chatsQuery = useQuery({
     queryKey: ['chats'],
-    enabled: Boolean(credentials) && stateQuery.data === 'authorized',
+    enabled: Boolean(credentials),
     queryFn: async () => {
       if (!credentials) return [];
       const client = new GreenApiHttpClient(() => credentials);

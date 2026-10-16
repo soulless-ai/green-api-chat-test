@@ -1,5 +1,5 @@
 import type { GreenApiHttpClient } from '@/shared/api/http/client';
-import type { InstanceState } from '@/shared/api/green-api/types';
+import type { AccountSettings, InstanceState } from '@/shared/api/green-api/types';
 
 export async function getStateInstance(client: GreenApiHttpClient): Promise<InstanceState> {
   const data = await client.request<{ stateInstance?: string }>('GET', 'getStateInstance');
@@ -19,4 +19,9 @@ export async function setHttpApiSettings(client: GreenApiHttpClient): Promise<vo
       stateWebhook: 'yes',
     }),
   });
+}
+
+export async function getAccountSettings(client: GreenApiHttpClient): Promise<AccountSettings | null> {
+  const data = await client.request<AccountSettings>('GET', 'getAccountSettings');
+  return data ?? null;
 }
