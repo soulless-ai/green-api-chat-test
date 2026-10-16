@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/shared/ui/toast/ToastProvider';
 import { useCredentialsStore, getDefaultMessenger } from '@/entities/credentials/model/credentials';
 import { messengerProfiles } from '@/shared/api/green-api/profiles';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
@@ -14,6 +15,7 @@ interface FormValues {
 }
 
 export function LoginPage() {
+  const toast = useToast();
   const navigate = useNavigate();
   const setCredentials = useCredentialsStore((state) => state.setCredentials);
   const {
@@ -39,8 +41,8 @@ export function LoginPage() {
     try {
       const state = await getStateInstance(client);
       if (state === 'authorized') await setHttpApiSettings(client);
-    } catch {
-      // ignore and continue; chats page shows status
+    } catch (error) {
+      toast.show(error instanceof Error ? error.message : 'Не удалось проверить инстанс', 'error');
     }
     navigate('/chats');
   };

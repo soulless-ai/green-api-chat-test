@@ -41,36 +41,54 @@ export class GreenApiHttpClient {
 
   async request<T>(method: string, apiMethod: string, init: RequestInit = {}, query?: Record<string, string | number>, trailing?: string): Promise<T | null> {
     const url = this.url(apiMethod, query, trailing);
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 30000);
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 30000);
+      try {
+        const response = await fetch(url, {
+          ...init,
+          method,
+          headers: { 'Content-Type': 'application/json', ...(init.headers ?? {}) },
+          signal: controller.signal,
+        });
 
-    try {
-      const response = await fetch(url, {
-        ...init,
-        method,
-        headers: { 'Content-Type': 'application/json', ...(init.headers ?? {}) },
-        signal: controller.signal,
-      });
+        if (response.status === 204) return null;
 
-      if (response.status === 204) return null;
+        const text = await response.text();
+        const data = text ? (JSON.parse(text) as unknown) : null;
 
-      const text = await response.text();
-      const data = text ? (JSON.parse(text) as unknown) : null;
+        if (!response.ok) {
+          const code = typeof data === 'object' && data !== null ? String((data as Record<string, unknown>).error ?? '') : undefined;
+          if (response.status >= 500 && attempt < 2) {
+            await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
+            continue;
+          }
+          throw new ApiError(response.statusText || 'Request failed', response.status, code, data);
+        }
 
-      if (!response.ok) {
-        const code = typeof data === 'object' && data !== null ? String((data as Record<string, unknown>).error ?? '') : undefined;
-        throw new ApiError(response.statusText || 'Request failed', response.status, code, data);
+        return data as T;
+      } catch (error) {
+        if (error instanceof ApiError) {
+          if (error.status >= 500 && attempt < 2) {
+            lastError = error;
+            await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
+            continue;
+          }
+          throw error;
+        }
+        lastError = error instanceof DOMException && error.name === 'AbortError'
+          ? new ApiError('Request timed out', 408)
+          : new ApiError(error instanceof Error ? error.message : 'Network error', 0);
+        if (attempt < 2) {
+          await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
+          continue;
+        }
+      } finally {
+        window.clearTimeout(timeout);
       }
-
-      return data as T;
-    } catch (error) {
-      if (error instanceof ApiError) throw error;
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ApiError('Request timed out', 408);
-      }
-      throw new ApiError(error instanceof Error ? error.message : 'Network error', 0);
-    } finally {
-      window.clearTimeout(timeout);
     }
+
+    throw lastError ?? new ApiError('Request failed', 0);
   }
 }

@@ -19,7 +19,12 @@ export function NewChatDialog({ open, onClose }: Props) {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<{ phone: string }>();
 
-  useEffect(() => { if (!open) reset(); }, [open, reset]);
+  useEffect(() => {
+    if (!open) {
+      reset();
+      mutation.reset();
+    }
+  }, [open, reset, mutation]);
 
   if (!open || !credentials) return null;
 

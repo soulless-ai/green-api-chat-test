@@ -8,6 +8,7 @@ import { sendMessage } from '@/shared/api/repositories/messages.repository';
 import { mapHistoryItem } from '@/features/receive-messages/lib/mapHistory';
 import { createTempId } from '@/shared/lib/id';
 import { formatTime } from '@/shared/lib/date';
+import { useToast } from '@/shared/ui/toast/ToastProvider';
 import { messengerProfiles } from '@/shared/api/green-api/profiles';
 
 export function ChatWindow() {
@@ -20,6 +21,7 @@ export function ChatWindow() {
   const markFailed = useChatsStore((state) => state.markFailed);
   const updatePreview = useChatsStore((state) => state.updatePreview);
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -83,9 +85,10 @@ export function ChatWindow() {
       });
       updatePreview(activeChatId, _text, Math.floor(Date.now() / 1000));
     },
-    onError: (_error, _text, context) => {
+    onError: (error, _text, context) => {
       if (!activeChatId || !context) return;
       markFailed(activeChatId, context.tempId);
+      toast.show(error instanceof Error ? error.message : 'Не удалось отправить сообщение', 'error');
     },
   });
 
@@ -104,7 +107,10 @@ export function ChatWindow() {
   const handleSend = () => {
     const text = draft.trim();
     if (!text) return;
-    if (credentials && text.length > (messengerProfiles[credentials.messenger].messageMaxLength)) return;
+    if (credentials && text.length > messengerProfiles[credentials.messenger].messageMaxLength) {
+      toast.show(`Сообщение длиннее ${messengerProfiles[credentials.messenger].messageMaxLength} символов`, 'error');
+      return;
+    }
     setDraft('');
     sendMutation.mutate(text);
   };

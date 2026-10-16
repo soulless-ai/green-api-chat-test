@@ -24,6 +24,7 @@ interface ChatsState {
   updatePreview: (chatId: string, preview: string, at: number) => void;
   setMessages: (chatId: string, messages: Message[]) => void;
   upsertMessage: (chatId: string, message: Message) => void;
+  updateMessageStatus: (chatId: string, messageId: string, status: Message['status']) => void;
   replaceMessage: (chatId: string, oldId: string, message: Message) => void;
   markFailed: (chatId: string, messageId: string) => void;
 }
@@ -58,6 +59,15 @@ export const useChatsStore = create<ChatsState>()(
           if (current.some((item) => item.id === message.id)) return state;
           return { messagesByChat: { ...state.messagesByChat, [chatId]: [...current, message] } };
         }),
+      updateMessageStatus: (chatId, messageId, status) =>
+        set((state) => ({
+          messagesByChat: {
+            ...state.messagesByChat,
+            [chatId]: (state.messagesByChat[chatId] ?? []).map((item) =>
+              item.id === messageId ? { ...item, status } : item,
+            ),
+          },
+        })),
       replaceMessage: (chatId, oldId, message) =>
         set((state) => {
           const current = state.messagesByChat[chatId] ?? [];

@@ -12,6 +12,7 @@ export function ChatsPage() {
   const credentials = useCredentialsStore((state) => state.credentials);
   const clearCredentials = useCredentialsStore((state) => state.clear);
   const sidebarOpen = useInstanceUiStore((state) => state.sidebarOpen);
+  const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
   const [newChatOpen, setNewChatOpen] = useState(false);
 
   const stateQuery = useQuery({
@@ -29,6 +30,7 @@ export function ChatsPage() {
     <div className="h-screen flex flex-col">
       <div className="bg-brand-700 text-white px-4 py-2 flex items-center justify-between">
         <span className="font-semibold">GREEN-API Chat</span>
+        <button onClick={toggleSidebar} className="md:hidden text-white text-sm">Меню</button>
         <div className="flex gap-3 text-sm">
           <span>{stateQuery.data === 'authorized' ? '● онлайн' : '● проверка статуса'}</span>
           <button onClick={clearCredentials} className="underline">Выйти</button>

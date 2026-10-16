@@ -36,6 +36,19 @@ export function NotificationPoller() {
             continue;
           }
 
+          const body = notification.body;
+          if (body.typeWebhook === 'outgoingMessageStatus') {
+            const status = String((body as { statusData?: { status?: string } }).statusData?.status ?? '').toLowerCase();
+            const mapped =
+              status === 'read' ? 'read' :
+              status === 'delivered' ? 'delivered' :
+              status === 'failed' ? 'failed' : 'sent';
+            const chatId = body.senderData?.chatId;
+            if (body.idMessage && chatId) {
+              useChatsStore.getState().updateMessageStatus(chatId, body.idMessage, mapped);
+            }
+          }
+
           const message = mapNotificationToMessage(notification.body);
           if (message) {
             const store = useChatsStore.getState();
