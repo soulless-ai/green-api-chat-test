@@ -1,11 +1,12 @@
+
 import { useState } from 'react';
+
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useInstanceUiStore } from '@/entities/instance/model/instance';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
 import { Avatar } from '@/shared/ui/Avatar';
-import { MobileDrawer } from '@/shared/ui/MobileDrawer';
 import { Button } from '@/shared/ui/Button';
-
+import { MobileDrawer } from '@/shared/ui/MobileDrawer';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -15,107 +16,208 @@ interface HeaderProps {
   statusLabel: string;
 }
 
-export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statusLabel }: HeaderProps) {
+type StatusStyle = {
+  text: string;
+  dot: string;
+};
+
+const DEFAULT_STATUS_STYLE: StatusStyle = {
+  text: 'text-ga-text dark:text-ga-darkText-secondary',
+  dot: 'bg-gray-400',
+};
+
+const STATUS_STYLES: Record<string, StatusStyle> = {
+  authorized: {
+    text: 'text-ga-primary dark:text-ga-darkPrimary',
+    dot: 'bg-emerald-500',
+  },
+  notAuthorized: {
+    text: 'text-ga-danger dark:text-ga-darkDanger',
+    dot: 'bg-red-500',
+  },
+  starting: {
+    text: 'text-ga-starting dark:text-ga-darkStarting',
+    dot: 'bg-amber-500',
+  },
+  blocked: {
+    text: 'text-ga-blocked dark:text-ga-darkBlocked',
+    dot: 'bg-red-500',
+  },
+  sleepMode: {
+    text: 'text-ga-warning dark:text-ga-darkWarning',
+    dot: 'bg-amber-500',
+  },
+};
+
+function getStatusStyle(status: string): StatusStyle {
+  return STATUS_STYLES[status] ?? DEFAULT_STATUS_STYLE;
+}
+
+function MenuIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 6h16M4 12h16M4 18h16"
+      />
+    </svg>
+  );
+}
+
+function ThemeIcon({ dark }: { dark: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      viewBox="0 0 24 24"
+    >
+      {dark ? (
+        // Солнце — переключение на светлую тему
+        <>
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="m4.93 4.93 1.42 1.42" />
+          <path d="m17.65 17.65 1.42 1.42" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="m6.35 17.65-1.42 1.42" />
+          <path d="m19.07 4.93-1.42 1.42" />
+        </>
+      ) : (
+        // Луна — переключение на тёмную тему
+        <path
+          d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z"
+        />
+      )}
+    </svg>
+  );
+}
+
+export function Header({
+  onToggleSidebar,
+  onLogout,
+  onThemeToggle,
+  status,
+  statusLabel,
+}: HeaderProps) {
   const credentials = useCredentialsStore((state) => state.credentials);
   const theme = useInstanceUiStore((state) => state.theme);
-  const setTheme = useInstanceUiStore((state) => state.setTheme);
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const statusColors: Record<string, { text: string; bg: string }> = {
-    authorized: { text: 'text-ga-primary dark:text-ga-darkPrimary', bg: 'bg-ga-authorizedBg dark:bg-ga-darkAuthorizedBg' },
-    notAuthorized: { text: 'text-ga-danger dark:text-ga-darkDanger', bg: 'bg-ga-notAuthorizedBg dark:bg-ga-darkNotAuthorizedBg' },
-    starting: { text: 'text-ga-starting dark:text-ga-darkStarting', bg: 'bg-ga-starting dark:bg-ga-darkStarting' },
-    blocked: { text: 'text-ga-blocked dark:text-ga-darkBlocked', bg: 'bg-ga-blocked dark:bg-ga-darkBlocked' },
-    sleepMode: { text: 'text-ga-warning dark:text-ga-darkWarning', bg: 'bg-ga-warning dark:bg-ga-darkWarning' },
-    unknown: { text: 'text-ga-text dark:text-ga-darkText-secondary', bg: 'bg-ga-dark-border' },
-  };
-
-  const statusColor = statusColors[status] ?? statusColors.unknown ?? { text: 'text-ga-text dark:text-ga-darkText-secondary', bg: 'bg-ga-dark-border' };
+  const statusStyle = getStatusStyle(status);
 
   return (
-    <nav className="bg-white/95 dark:bg-ga-darkBg/95 backdrop-blur-md border-b border-ga-border dark:border-ga-darkBorder px-4 py-3.5 flex items-center justify-between z-40 sticky top-0" aria-label="Основная навигация">
-      <div className="flex items-center gap-3 shrink-0">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2.5 text-ga-text dark:text-ga-darkText hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 rounded-lg transition-colors"
-          aria-label="Открыть навигацию"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div className="flex items-center gap-2 cursor-pointer select-none">
-          {isMobile ? (
-            <img src="/assets/green-api.svg" alt="GREEN-API" className="h-8 w-auto" />
-          ) : null}
-          <span className="text-lg font-bold tracking-tight text-ga-text dark:text-ga-darkText select-none">
+    <>
+      <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-ga-border bg-white/95 px-3 py-3 backdrop-blur-md dark:border-ga-darkBorder dark:bg-ga-darkBg/95 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <img
+            src="/assets/green-api.svg"
+            alt="GREEN-API"
+            className="h-7 w-auto shrink-0"
+          />
+
+          <span className="min-w-0 truncate text-base font-bold tracking-tight text-ga-text dark:text-ga-darkText sm:text-lg">
             GREEN-API Chat
           </span>
         </div>
-      </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-2.5 text-sm">
-          <span className={`font-medium ${statusColor.text}`}>{statusLabel}</span>
-          <span className={`px-2 py-0.5 rounded ${statusColor.bg}`}>●</span>
-        </div>
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div
+            className="hidden items-center gap-2 text-sm md:flex"
+            role="status"
+            aria-label={`Статус подключения: ${statusLabel}`}
+          >
+            <span className={`font-medium ${statusStyle.text}`}>
+              {statusLabel}
+            </span>
 
-        {credentials ? (
-          <div className="hidden md:flex flex-col items-end">
-            <div className="text-right">
-              <div className="text-sm font-medium text-ga-text dark:text-ga-darkText">{credentials.idInstance}</div>
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${statusStyle.dot}`}
+              aria-hidden="true"
+            />
+          </div>
+
+          {credentials && (
+            <div className="hidden min-w-0 items-center gap-2 border-l border-ga-border pl-3 dark:border-ga-darkBorder md:flex">
+              <div className="min-w-0 text-right">
+                <p
+                  className="max-w-36 truncate text-sm font-medium text-ga-text dark:text-ga-darkText"
+                  title={credentials.idInstance}
+                >
+                  {credentials.idInstance}
+                </p>
+              </div>
+
               <Avatar
                 src={credentials.avatarUrl ?? undefined}
                 name={credentials.idInstance}
                 size="md"
-                className="mt-1 cursor-pointer"
               />
             </div>
-          </div>
-        ) : null}
+          )}
 
-        {isMobile ? (
-          <div className="relative z-50">
+          <div className="hidden items-center gap-2 md:flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onThemeToggle}
+              aria-label={
+                theme === 'light'
+                  ? 'Переключить на тёмную тему'
+                  : 'Переключить на светлую тему'
+              }
+              title={
+                theme === 'light'
+                  ? 'Тёмная тема'
+                  : 'Светлая тема'
+              }
+            >
+              <ThemeIcon dark={theme === 'dark'} />
+            </Button>
+
+            <Button variant="danger" size="sm" onClick={onLogout}>
+              Выйти
+            </Button>
+          </div>
+
+          {isMobile && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setDrawerOpen(true)}
-              aria-label="Навигация"
+              aria-label="Открыть меню"
               aria-expanded={drawerOpen}
-              className="z-50"
             >
-              <svg className="w-6 h-6 z-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
+              <MenuIcon />
             </Button>
-            <MobileDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onToggleSidebar={onToggleSidebar} />
-          </div>
-        ) : null}
-
-        <div className="hidden md:flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onThemeToggle}
-            aria-label={theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
-            title={theme === 'light' ? 'Переключить на тёмную тему' : 'Переключить на светлую тему'}
-          >
-            {theme === 'light' ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 3c4.981 0 9.046 4.057 9.046 9.046s-4.065 9.046-9.046 9.046" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            )}
-          </Button>
-          <Button variant="danger" size="sm" onClick={onLogout}>
-            Выйти
-          </Button>
+          )}
         </div>
-      </div>
-    </nav>
+      </header>
+
+      {isMobile && (
+        <MobileDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          onToggleSidebar={onToggleSidebar}
+          onThemeToggle={onThemeToggle}
+          onLogout={onLogout}
+        />
+      )}
+    </>
   );
 }

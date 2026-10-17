@@ -14,7 +14,7 @@ const SIZE_CLASSES: Record<NonNullable<AvatarProps['size']>, string> = {
   lg: 'h-12 w-12',
 };
 
-const FALLBACK_COLORS = [
+const FALLBACK_COLORS: [string, ...string[]] = [
   'bg-ga-primary',
   'bg-brand-600',
   'bg-blue-600',

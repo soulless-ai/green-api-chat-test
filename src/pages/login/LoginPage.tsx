@@ -41,6 +41,7 @@ export function LoginPage() {
     const client = new GreenApiHttpClient(() => useCredentialsStore.getState().credentials);
     try {
       const state = await getStateInstance(client);
+      console.log('Instance state:', state);
       if (state === 'authorized') {
         await setHttpApiSettings(client);
         try {
