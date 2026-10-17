@@ -14,7 +14,7 @@ export function ChatHeader({ chatId, onBack }: ChatHeaderProps) {
   if (!chat) return null;
 
   return (
-    <header className="bg-white dark:bg-[#1f2223] border-b border-ga-dark-border px-5 py-4">
+    <header className="bg-white dark:bg-ga-dark-panel border-b border-ga-dark-border px-5 py-4">
       <div className="flex items-center gap-4">
         {isMobile && onBack && (
           <button

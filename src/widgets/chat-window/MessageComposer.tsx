@@ -56,7 +56,7 @@ export function MessageComposer({
   };
 
   return (
-    <div className="bg-white dark:bg-[#1f2223] border-t border-ga-dark-border p-4">
+    <div className="bg-white dark:bg-ga-dark-panel border-t border-ga-dark-border p-4">
       <div className="flex flex-col gap-3">
         {selectedFile && (
           <div className="flex items-center gap-3 px-2 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
@@ -77,7 +77,7 @@ export function MessageComposer({
             onKeyDown={handleKeyDown}
             rows={1}
             placeholder="Напишите сообщение…"
-            className="flex-1 border border-ga-dark-border rounded-xl px-4 py-3 resize-none text-base text-ga-dark-text bg-white dark:bg-[#1a1a1a] focus:ring-2 focus:ring-ga-primary outline-none"
+            className="flex-1 border border-ga-dark-border rounded-xl px-4 py-3 resize-none text-base text-ga-dark-text bg-white dark:bg-ga-dark-input focus:ring-2 focus:ring-ga-primary outline-none"
           />
           <div className="flex gap-1">
             <Button variant="ghost" size="sm" onClick={onToggleEmoji}>

@@ -215,7 +215,7 @@ export function ChatWindow() {
   }
 
   return (
-    <section className="flex-1 flex flex-col bg-[#efeae2] dark:bg-[#1a1a1a]">
+    <section className="flex-1 flex flex-col bg-ga-light-chatBg dark:bg-ga-dark-chatBg">
       <ChatHeader chatId={activeChatId} onBack={isMobile ? toggleSidebar : undefined} />
       {typingUsers.length > 0 && (
         <div className="mt-2 text-sm font-medium text-ga-dark-primary italic px-5">

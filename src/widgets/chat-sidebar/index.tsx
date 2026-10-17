@@ -11,7 +11,7 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
   );
 
   return (
-    <aside className="w-full md:w-80 bg-white dark:bg-[#1f2223] border-r border-ga-dark-border flex flex-col">
+    <aside className="w-full md:w-80 bg-white dark:bg-ga-dark-panel border-r border-ga-dark-border flex flex-col">
       <div className="p-5 border-b border-ga-dark-border space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-ga-dark-text">Чаты</h2>

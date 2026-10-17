@@ -53,7 +53,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
         <React.Fragment key={`${message.dateLabel ?? message.id}-${index}`}>
           {message.dateLabel ? (
             <div key="date" className="my-3 flex items-center text-center">
-              <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-dark-text-secondary bg-white dark:bg-[#1f2223] border border-ga-dark-border">
+              <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-dark-text-secondary bg-white dark:bg-ga-dark-panel border border-ga-dark-border">
                 {message.dateLabel}
               </span>
             </div>

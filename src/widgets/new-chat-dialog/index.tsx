@@ -44,7 +44,7 @@ export function NewChatDialog({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true">
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-[#1f2223] rounded-2xl p-6 w-full max-w-sm space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-ga-dark-panel rounded-2xl p-6 w-full max-w-sm space-y-4">
         <h3 className="text-lg font-semibold text-ga-dark-text">Новый чат</h3>
         <div>
           <label className="block text-sm font-medium mb-1 text-ga-dark-text" htmlFor="new-chat-phone">

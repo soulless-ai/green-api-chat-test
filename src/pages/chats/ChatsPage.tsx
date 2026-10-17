@@ -180,7 +180,7 @@ export function ChatsPage() {
                 onClick={toggleSidebar}
                 aria-hidden="true"
               />
-              <div className={`fixed inset-y-0 right-0 z-60 w-full max-w-md bg-white dark:bg-[#1f2223] border-l border-ga-dark-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+              <div className={`fixed inset-y-0 right-0 z-60 w-full max-w-md bg-white dark:bg-ga-dark-panel border-l border-ga-dark-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
                   <h2 className="text-lg font-bold text-ga-dark-text">Навигация</h2>
                   <button

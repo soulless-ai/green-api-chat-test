@@ -11,7 +11,7 @@ export function MessageItem({ message }: MessageItemProps) {
 
   return (
     <div className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${isOutgoing ? 'bg-ga-message-card-bg text-ga-dark-text' : 'bg-white dark:bg-[#1f2223] text-ga-dark-text border border-ga-dark-border'}`}>
+      <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${isOutgoing ? 'bg-ga-light-messageCardBg text-ga-dark-text' : 'bg-white dark:bg-ga-dark-messageCardBg text-ga-dark-text border border-ga-dark-border'}`}>
         {message.direction === 'in' && message.senderName && (
           <div className="text-xs font-semibold text-ga-primary mb-1">{message.senderName}</div>
         )}
