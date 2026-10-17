@@ -15,6 +15,8 @@ import { ChatHeader } from './ChatHeader';
 import { MessageList } from './MessageList';
 import { MessageComposer } from './MessageComposer';
 import { EmptyChat } from './EmptyChat';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
+import { deleteMessage } from '@/shared/api/repositories/chats.repository';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -36,6 +38,7 @@ export function ChatWindow() {
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [deleteConfirmMessageId, setDeleteConfirmMessageId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const chat = useChatsStore((state) => state.chats.find((item) => item.id === activeChatId));
@@ -210,6 +213,16 @@ export function ChatWindow() {
     setUploadingFile(false);
   };
 
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmMessageId || !credentials || !chat) return;
+    try {
+      await deleteMessage(new GreenApiHttpClient(() => credentials), chat.chatId, deleteConfirmMessageId);
+      setDeleteConfirmMessageId(null);
+    } catch {
+      setDeleteConfirmMessageId(null);
+    }
+  };
+
   if (!activeChatId || !chat) {
     return <EmptyChat chatTitle={null} />;
   }
@@ -223,7 +236,7 @@ export function ChatWindow() {
         </div>
       )}
       <div ref={listRef} className="flex-1 overflow-y-auto px-5 py-4">
-        <MessageList messages={messages} isLoading={historyQuery.isLoading} />
+        <MessageList messages={messages} isLoading={historyQuery.isLoading} onDelete={setDeleteConfirmMessageId} />
       </div>
       <MessageComposer
         onSend={handleSend}
@@ -263,6 +276,15 @@ export function ChatWindow() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteConfirmMessageId !== null}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteConfirmMessageId(null)}
+        title="Удалить сообщение?"
+        message="Сообщение будет удалено без возможности восстановления."
+        confirmLabel="Удалить"
+        cancelLabel="Отмена"
+      />
     </section>
   );
 }

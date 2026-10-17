@@ -7,13 +7,14 @@ import { MessageItem } from './MessageItem';
 interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
+  onDelete?: (messageId: string) => void;
 }
 
 interface MessageWithDate extends Message {
   dateLabel?: string;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({ messages, isLoading, onDelete }: MessageListProps) {
   const sorted = useMemo(() => [...messages].sort((a, b) => a.timestamp - b.timestamp), [messages]);
 
   const messagesWithDates = useMemo(() => {
@@ -58,7 +59,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
               </span>
             </div>
           ) : null}
-          <MessageItem key={message.id} message={message} />
+          <MessageItem key={message.id} message={message} onDelete={() => { onDelete?.(message.id); }} />
         </React.Fragment>
       ))}
     </>

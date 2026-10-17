@@ -3,9 +3,10 @@ import { formatTime } from '@/shared/lib/date';
 
 interface MessageItemProps {
   message: Message;
+  onDelete?: () => void;
 }
 
-export function MessageItem({ message }: MessageItemProps) {
+export function MessageItem({ message, onDelete }: MessageItemProps) {
   const isMedia = Boolean((message as any).mediaUrl);
   const isOutgoing = message.direction === 'out';
 
@@ -30,7 +31,16 @@ export function MessageItem({ message }: MessageItemProps) {
         <div className="text-[11px] text-ga-dark-text-secondary text-right mt-2 flex items-center justify-end gap-2">
           <span>{formatTime(message.timestamp)}</span>
           {isOutgoing ? (
-            <span>{message.status === 'failed' ? '✗' : message.status === 'pending' ? '…' : '✓'}</span>
+            <>
+              <span>{message.status === 'failed' ? '✗' : message.status === 'pending' ? '…' : '✓'}</span>
+              <button
+                onClick={onDelete}
+                className="ml-2 p-1 text-ga-dark-text-secondary hover:text-ga-danger hover:bg-ga-dark-border/50 rounded"
+                aria-label="Удалить сообщение"
+              >
+                ✕
+              </button>
+            </>
           ) : null}
         </div>
       </div>
