@@ -52,8 +52,8 @@ export function Avatar({ src, name = 'Пользователь', size = 'md', cl
   return (
     <div className={wrapperClass} aria-label={name}>
       {showFallback ? (
-        <div className="flex items-center justify-center rounded-full overflow-hidden">
-          <div className={`w-full h-full flex items-center justify-center rounded-full ${fallbackColorFor(trimmed)} text-white ${textClass}`}>
+        <div className="w-full h-full flex items-center justify-center rounded-full overflow-hidden">
+          <div className={`w-full h-full flex items-center justify-center rounded-full ${fallbackColorFor(trimmed)} text-white ${textClass} line-height-none`}>
             {initials}
           </div>
         </div>

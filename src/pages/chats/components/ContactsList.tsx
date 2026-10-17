@@ -7,7 +7,7 @@ import { ContactItem } from './ContactItem';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 100;
 
 export function ContactsList() {
   const navigate = useNavigate();
