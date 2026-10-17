@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { Button } from '@/shared/ui/Button';
-import { ChatListItem } from './ChatListItem';
+import { ChatListItem } from '@/widgets/chat-list';
 
 export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
   const [search, setSearch] = useState('');

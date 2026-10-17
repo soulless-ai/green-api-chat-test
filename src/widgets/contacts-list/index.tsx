@@ -3,7 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getContacts } from '@/shared/api/repositories/contacts.repository';
-import { ContactItem } from './ContactItem';
+import { ContactItem } from '@/widgets/contact-item';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
 
