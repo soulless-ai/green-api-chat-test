@@ -2,6 +2,7 @@ import type { GreenApiCredentials } from '@/shared/api/green-api/types';
 import { env } from '@/shared/config/env';
 import { resolveGreenApiBaseUrl } from '@/shared/lib/greenApi';
 import { limitMethod } from '@/shared/api/http/rateLimiter';
+import { markQuotaExceeded } from '@/shared/api/http/quota';
 
 const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
@@ -109,6 +110,7 @@ export class GreenApiHttpClient {
     init: RequestInit = {},
     query?: Record<string, string | number>,
     trailing?: string,
+    timeoutMs = REQUEST_TIMEOUT_MS,
   ): Promise<T | null> {
     const credentials = this.credentials();
     const url = this.url(apiMethod, query, trailing);
@@ -116,10 +118,7 @@ export class GreenApiHttpClient {
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
       const controller = new AbortController();
-      const timeout = window.setTimeout(
-        () => controller.abort(),
-        REQUEST_TIMEOUT_MS,
-      );
+      const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
       try {
         const response = await limitMethod(apiMethod, credentials.idInstance, () =>
@@ -140,6 +139,8 @@ export class GreenApiHttpClient {
         const data = text ? (JSON.parse(text) as unknown) : null;
 
         if (!response.ok) {
+          if (response.status === 466) markQuotaExceeded();
+
           throw new ApiError(errorMessageFrom(data, response.statusText), response.status, {
             code: errorCodeFrom(data),
             raw: data,

@@ -5,6 +5,7 @@ import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useInstanceUiStore } from '@/entities/instance/model/instance';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getChatHistory, sendTyping, readChat } from '@/shared/api/repositories/chats.repository';
+import { isQuotaExceeded } from '@/shared/api/http/quota';
 import { sendMessage } from '@/shared/api/repositories/messages.repository';
 import { mapHistoryItem, mergeMessages, collectDeletedHistoryIds } from '@/features/receive-messages/lib/mapHistory';
 import { createTempId } from '@/shared/lib/id';
@@ -83,11 +84,14 @@ export function ChatWindow() {
         store.updatePreview(last.chatId, preview, last.timestamp);
       }
     }
-
-    if (credentials && chat) {
-      readChat(new GreenApiHttpClient(() => credentials), chat.chatId).catch(() => {});
-    }
   }, [activeChatId, historyQuery.data, credentials, chat]);
+
+  const readChatId = chat?.chatId;
+
+  useEffect(() => {
+    if (!credentials || !readChatId || isQuotaExceeded()) return;
+    readChat(new GreenApiHttpClient(() => credentials), readChatId).catch(() => {});
+  }, [credentials, readChatId]);
 
   const sendMutation = useMutation({
     mutationFn: async (text: string) => {

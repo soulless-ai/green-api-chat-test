@@ -11,6 +11,7 @@ import {
 } from '@/shared/api/repositories/instance.repository';
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
+import { useQuotaExceeded } from '@/shared/lib/useQuotaExceeded';
 import { Header } from '@/shared/ui/Header';
 import { Sidebar } from '@/widgets/sidebar';
 import { ChatWindow } from '@/widgets/chat-window';
@@ -34,6 +35,7 @@ export function ChatsPage() {
   const addChat = useChatsStore((state) => state.addChat);
   const setCredentials = useCredentialsStore((state) => state.setCredentials);
   const isMobile = useIsMobile();
+  const quotaExceeded = useQuotaExceeded();
   const [newChatOpen, setNewChatOpen] = useState(false);
   const handleNewChat = useCallback(() => setNewChatOpen(true), []);
 
@@ -183,6 +185,12 @@ export function ChatsPage() {
       {stateQuery.data !== 'authorized' ? (
         <div className="border-b border-ga-border bg-ga-notAuthorizedBg px-5 py-3.5 text-base text-ga-text dark:border-ga-darkBorder dark:bg-ga-darkNotAuthorizedBg dark:text-ga-darkText">
           Инстанс не авторизован. Откройте личный кабинет GREEN-API, авторизуйте номер и очистите webhookUrl.
+        </div>
+      ) : null}
+
+      {quotaExceeded ? (
+        <div className="border-b border-ga-border bg-ga-notAuthorizedBg px-5 py-3.5 text-base text-ga-text dark:border-ga-darkBorder dark:bg-ga-darkNotAuthorizedBg dark:text-ga-darkText">
+          Достигнут лимит тарифа GREEN-API. Загрузка аватарок и отметка о прочтении приостановлены.
         </div>
       ) : null}
 
