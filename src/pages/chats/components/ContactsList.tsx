@@ -31,10 +31,25 @@ export function ContactsList() {
 
   if (contactsQuery.isFetching && !contactsQuery.data) {
     return (
-      <div className="flex flex-col h-full items-center justify-center pt-20">
-        <Skeleton width="48" height="48" className="rounded-full" />
-        <Skeleton width="200" height="1em" className="mt-3" />
-        <p className="mt-1 text-base text-ga-dark-text-secondary">Загрузка контактов…</p>
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
+          <Button variant="ghost" size="md" onClick={() => navigate('/chats')}>
+            ← Назад к чатам
+          </Button>
+          <h2 className="text-lg font-bold text-ga-dark-text">Контакты</h2>
+        </div>
+        <div className="flex flex-col space-y-1 px-5 py-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-ga-dark-border/50">
+              <Skeleton width="36" height="36" className="rounded-full" />
+              <div className="flex-1 min-w-0">
+                <Skeleton width="140" height="1.25em" />
+                <Skeleton width="200" height="1em" className="mt-1" />
+              </div>
+              <Skeleton width="80" height="1.25em" className="rounded-full" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
