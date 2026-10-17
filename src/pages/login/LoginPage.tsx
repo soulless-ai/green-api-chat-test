@@ -41,7 +41,6 @@ export function LoginPage() {
     const client = new GreenApiHttpClient(() => useCredentialsStore.getState().credentials);
     try {
       const state = await getStateInstance(client);
-      console.log('Instance state:', state);
       if (state === 'authorized') {
         await setHttpApiSettings(client);
         try {
@@ -65,16 +64,16 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md bg-white rounded-2xl shadow p-6 space-y-4">
+    <div className="min-h-screen bg-ga-light-bg flex items-center justify-center p-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md bg-white dark:bg-ga-darkPanel rounded-2xl shadow p-6 space-y-4">
         <div>
-          <h1 className="text-2xl font-semibold">GREEN-API Chat</h1>
-          <p className="text-sm text-slate-500">Войдите с помощью данных инстанса</p>
+          <h1 className="text-2xl font-semibold text-ga-text dark:text-ga-darkText">GREEN-API Chat</h1>
+          <p className="text-sm text-ga-textSecondary dark:text-ga-darkTextSecondary">Войдите с помощью данных инстанса</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Мессенджер</label>
-          <select {...register('messenger')} className="w-full border rounded-lg px-3 py-2">
+          <label className="block text-sm font-medium mb-1 text-ga-text dark:text-ga-darkText">Мессенджер</label>
+          <select {...register('messenger')} className="w-full border border-ga-border rounded-lg px-3 py-2 text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput">
             {Object.values(messengerProfiles).map((profile) => (
               <option key={profile.id} value={profile.id}>{profile.label}</option>
             ))}
@@ -82,20 +81,20 @@ export function LoginPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">idInstance</label>
-          <input {...register('idInstance', { required: 'Укажите idInstance' })} className="w-full border rounded-lg px-3 py-2" />
-          {errors.idInstance ? <p className="text-sm text-red-500 mt-1">{errors.idInstance.message}</p> : null}
+          <label className="block text-sm font-medium mb-1 text-ga-text dark:text-ga-darkText">idInstance</label>
+          <input {...register('idInstance', { required: 'Укажите idInstance' })} className="w-full border border-ga-border rounded-lg px-3 py-2 text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput" />
+          {errors.idInstance ? <p className="text-sm text-ga-danger dark:text-ga-darkDanger mt-1">{errors.idInstance.message}</p> : null}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">apiTokenInstance</label>
-          <input {...register('apiTokenInstance', { required: 'Укажите apiTokenInstance' })} type="password" className="w-full border rounded-lg px-3 py-2" />
-          {errors.apiTokenInstance ? <p className="text-sm text-red-500 mt-1">{errors.apiTokenInstance.message}</p> : null}
+          <label className="block text-sm font-medium mb-1 text-ga-text dark:text-ga-darkText">apiTokenInstance</label>
+          <input {...register('apiTokenInstance', { required: 'Укажите apiTokenInstance' })} type="password" className="w-full border border-ga-border rounded-lg px-3 py-2 text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput" />
+          {errors.apiTokenInstance ? <p className="text-sm text-ga-danger dark:text-ga-darkDanger mt-1">{errors.apiTokenInstance.message}</p> : null}
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">apiUrl (необязательно)</label>
-          <input {...register('apiUrl')} placeholder="https://api.green-api.com" className="w-full border rounded-lg px-3 py-2" />
+          <label className="block text-sm font-medium mb-1 text-ga-text dark:text-ga-darkText">apiUrl (необязательно)</label>
+          <input {...register('apiUrl')} placeholder="https://api.green-api.com" className="w-full border border-ga-border rounded-lg px-3 py-2 text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput" />
         </div>
 
         <Button variant="primary" size="lg" type="submit" disabled={isSubmitting} className="w-full">

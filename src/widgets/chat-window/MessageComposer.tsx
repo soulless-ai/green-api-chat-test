@@ -59,11 +59,11 @@ export function MessageComposer({
     <div className="bg-white dark:bg-ga-darkPanel border-t border-ga-border dark:border-ga-darkBorder p-4">
       <div className="flex flex-col gap-3">
         {selectedFile && (
-          <div className="flex items-center gap-3 px-2 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <span className="text-xs text-amber-800 dark:text-amber-400 font-medium">📎 {selectedFile.name}</span>
+          <div className="flex items-center gap-3 px-2 py-2 bg-ga-notAuthorizedBg dark:bg-ga-darkNotAuthorizedBg rounded-lg border border-ga-border dark:border-ga-darkBorder">
+            <span className="text-xs text-ga-danger dark:text-ga-darkDanger font-medium">📎 {selectedFile.name}</span>
             <button
               onClick={onRemoveFile}
-              className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 text-xs"
+              className="text-ga-danger dark:text-ga-darkDanger hover:text-ga-danger/80 dark:hover:text-ga-darkDanger/80 text-xs"
             >
               Убрать
             </button>

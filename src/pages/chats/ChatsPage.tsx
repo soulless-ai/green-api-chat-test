@@ -166,7 +166,7 @@ export function ChatsPage() {
       />
 
       {stateQuery.data !== 'authorized' ? (
-        <div className="bg-amber-50 border-b border-amber-200 px-5 py-3.5 text-base text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400">
+        <div className="bg-ga-notAuthorizedBg border-b border-ga-border px-5 py-3.5 text-base text-ga-text dark:border-ga-darkBorder">
           Инстанс не авторизован. Откройте личный кабинет GREEN-API, авторизуйте номер и очистите webhookUrl.
         </div>
       ) : null}

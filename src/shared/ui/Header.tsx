@@ -29,23 +29,23 @@ const DEFAULT_STATUS_STYLE: StatusStyle = {
 const STATUS_STYLES: Record<string, StatusStyle> = {
   authorized: {
     text: 'text-ga-primary dark:text-ga-darkPrimary',
-    dot: 'bg-emerald-500',
+    dot: 'bg-ga-primary',
   },
   notAuthorized: {
     text: 'text-ga-danger dark:text-ga-darkDanger',
-    dot: 'bg-red-500',
+    dot: 'bg-ga-danger',
   },
   starting: {
     text: 'text-ga-starting dark:text-ga-darkStarting',
-    dot: 'bg-amber-500',
+    dot: 'bg-ga-starting',
   },
   blocked: {
     text: 'text-ga-blocked dark:text-ga-darkBlocked',
-    dot: 'bg-red-500',
+    dot: 'bg-ga-danger',
   },
   sleepMode: {
     text: 'text-ga-warning dark:text-ga-darkWarning',
-    dot: 'bg-amber-500',
+    dot: 'bg-ga-warning',
   },
 };
 
@@ -85,7 +85,6 @@ function ThemeIcon({ dark }: { dark: boolean }) {
       viewBox="0 0 24 24"
     >
       {dark ? (
-        // Солнце — переключение на светлую тему
         <>
           <circle cx="12" cy="12" r="4" />
           <path d="M12 2v2" />
@@ -98,10 +97,7 @@ function ThemeIcon({ dark }: { dark: boolean }) {
           <path d="m19.07 4.93-1.42 1.42" />
         </>
       ) : (
-        // Луна — переключение на тёмную тему
-        <path
-          d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z"
-        />
+        <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />
       )}
     </svg>
   );
