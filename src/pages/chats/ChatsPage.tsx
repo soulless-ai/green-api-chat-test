@@ -6,17 +6,15 @@ import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getStateInstance } from '@/shared/api/repositories/instance.repository';
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
-import { env } from '@/shared/config/env';
 import { Header } from '@/shared/ui/Header';
 import { Button } from '@/shared/ui/Button';
 import { ChatSidebar } from '@/widgets/chat-sidebar';
 import { ChatWindow } from '@/widgets/chat-window';
 import { NewChatDialog } from '@/widgets/new-chat-dialog';
-import { Skeleton } from '@/shared/ui/Skeleton';
-import { getChats } from '@/shared/api/repositories/chats.repository';
 import { getMessengerSettings } from '@/shared/api/repositories/instance.repository';
-import { useChatsStore, type Chat } from '@/entities/chat/model/chat';
-import type { ChatSummary } from '@/shared/api/green-api/types';
+import { useChatsStore } from '@/entities/chat/model/chat';
+import { useChatsQuery } from '@/entities/chat/api/useChatsQuery';
+import { summaryToChat } from '@/entities/chat/lib/chat';
 
 export function ChatsPage() {
   const navigate = useNavigate();
@@ -44,21 +42,7 @@ export function ChatsPage() {
     retry: 1,
   });
 
-  const chatsQuery = useQuery({
-    queryKey: [
-      'chats',
-      credentials?.idInstance,
-      credentials?.messenger,
-    ],
-    enabled: Boolean(credentials),
-    queryFn: async () => {
-      if (!credentials) return [];
-      const client = new GreenApiHttpClient(() => credentials);
-      return getChats(client, env.historyPageSize);
-    },
-    refetchInterval: 300000,
-    retry: 1,
-  });
+  const chatsQuery = useChatsQuery();
 
   const accountQuery = useQuery({
     queryKey: ['account-settings', credentials?.messenger],
@@ -90,25 +74,11 @@ export function ChatsPage() {
   useEffect(() => {
     if (!chatsQuery.data || !credentials) return;
 
-    const chats: Chat[] = chatsQuery.data
-      .filter((summary) => summary.chatId)
-      .map((summary) => {
-        const phoneNumber = summary.phoneNumber ?? 0;
-        return {
-          id: summary.chatId,
-          chatId: summary.chatId,
-          title:
-            summary.name ||
-            (phoneNumber > 0 ? String(phoneNumber) : summary.chatId),
-          phone: phoneNumber > 0 ? String(phoneNumber) : undefined,
-          messenger: credentials.messenger ?? 'whatsapp',
-          createdAt: Date.now(),
-          unreadCount: summary.unreadCount,
-          avatarUrl: null,
-        };
-      });
+    const messenger = credentials.messenger ?? 'whatsapp';
 
-    setChatsList(chats);
+    setChatsList(
+      chatsQuery.data.map((summary) => summaryToChat(summary, messenger)),
+    );
   }, [chatsQuery.data, credentials?.messenger, setChatsList]);
 
   const statusLabelMap: Record<string, string> = {
@@ -130,38 +100,6 @@ export function ChatsPage() {
       document.documentElement.classList.remove('dark');
     }
   };
-
-  const renderChatListSkeleton = () => (
-    <div className="flex flex-col h-full">
-      <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-2">
-            <Skeleton width="60" height="1.5em" />
-            <Skeleton width="100" height="1em" />
-          </div>
-          <Button variant="primary" size="sm" disabled>
-            Новый чат
-          </Button>
-        </div>
-        <div className="flex gap-2">
-          <Skeleton width="200" height="2.5em" className="rounded-full" />
-          <Skeleton width="60" height="2.5em" className="rounded-full" />
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto py-4">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50">
-            <Skeleton width="36" height="36" className="rounded-full" />
-            <div className="flex-1 min-w-0">
-              <Skeleton width="120" height="1.25em" />
-              <Skeleton width="200" height="1em" className="mt-1" />
-            </div>
-            <Skeleton width="48" height="1.25em" className="rounded-full" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   return (
     <div className="h-dvh flex flex-col">
@@ -204,7 +142,7 @@ export function ChatsPage() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   <div className="p-4">
                     <h3 className="text-sm font-semibold text-ga-text dark:text-ga-darkText-secondary uppercase tracking-wider mb-3">Чаты</h3>
-                    {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
+                    <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
                   </div>
                   <div className="px-4 pb-4">
                     <Button
@@ -230,7 +168,7 @@ export function ChatsPage() {
         ) : (
           <>
             <div className="hidden md:flex w-80 shrink-0 flex-col bg-white dark:bg-ga-darkPanel">
-              {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
+              <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
             </div>
             <ChatWindow />
           </>

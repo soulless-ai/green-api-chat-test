@@ -23,11 +23,14 @@ export interface SendMessageResponse {
 }
 
 export interface ChatSummary {
-  chatId: string;
+  id: string;
   name?: string;
   type?: string;
-  phoneNumber?: number;
   unreadCount?: number;
+  archive?: boolean;
+  newChatId?: string;
+  ephemeralExpiration?: number;
+  ephemeralSettingTimestamp?: number;
 }
 
 export interface GetAvatarResponse {
@@ -46,11 +49,18 @@ export interface GetContactInfoResponse {
   chatId: string;
   name?: string;
   contactName?: string;
+  email?: string;
   chatType?: string;
   avatar?: string;
-  lastSeen?: number;
-  phoneNumber?: number;
-  phoneNumberTimestamp?: number;
+  base64Avatar?: string;
+  lastSeen?: number | null;
+  phoneNumber?: string | number;
+  isArchive?: boolean;
+  isDisappearing?: boolean;
+  isMute?: boolean;
+  isBusiness?: boolean;
+  description?: string;
+  category?: string;
 }
 
 export interface SendTypingResponse {

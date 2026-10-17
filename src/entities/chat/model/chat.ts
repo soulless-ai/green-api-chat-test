@@ -15,6 +15,7 @@ export interface Chat {
   lastMessageAt?: number;
   avatarUrl?: string | null;
   unreadCount?: number;
+  hasName?: boolean;
 }
 
 interface ChatsState {
@@ -80,6 +81,7 @@ export const useChatsStore = create<ChatsState>()(
             avatarUrl: chat.avatarUrl ?? existing.avatarUrl,
             unreadCount: chat.unreadCount ?? existing.unreadCount,
             phone: chat.phone ?? existing.phone,
+            hasName: chat.hasName ?? existing.hasName,
           };
 
           return { chats };
@@ -99,7 +101,26 @@ export const useChatsStore = create<ChatsState>()(
         set((state) => ({
           chats: state.chats.map((chat) => (chat.chatId === chatId ? { ...chat, avatarUrl } : chat)),
         })),
-      setChatsList: (chats: Chat[]) => set({ chats }),
+      setChatsList: (chats: Chat[]) =>
+        set((state) => ({
+          chats: chats.map((chat) => {
+            const existing = state.chats.find(
+              (item) => item.chatId === chat.chatId,
+            );
+
+            if (!existing) return chat;
+
+            return {
+              ...chat,
+              createdAt: existing.createdAt,
+              avatarUrl: existing.avatarUrl ?? chat.avatarUrl,
+              lastMessagePreview:
+                existing.lastMessagePreview ?? chat.lastMessagePreview,
+              lastMessageAt: existing.lastMessageAt ?? chat.lastMessageAt,
+              hasName: chat.hasName || existing.hasName,
+            };
+          }),
+        })),
       setContacts: (contacts) => set({ contacts }),
       setMessages: (chatId, messages) =>
         set((state) => ({ messagesByChat: { ...state.messagesByChat, [chatId]: messages } })),

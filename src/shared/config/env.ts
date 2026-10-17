@@ -4,7 +4,7 @@ const asNumber = (value: string | undefined, fallback: number) => {
 };
 
 export const env = {
-  greenApiBaseUrl: (import.meta.env.VITE_GREEN_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? 'https://api.green-api.com',
+  greenApiBaseUrlOverride: (import.meta.env.VITE_GREEN_API_BASE_URL as string | undefined)?.replace(/\/$/, ''),
   defaultMessenger: (import.meta.env.VITE_DEFAULT_MESSENGER as string | undefined) ?? 'whatsapp',
   pollReceiveTimeoutSec: asNumber(import.meta.env.VITE_POLL_RECEIVE_TIMEOUT_SEC, 20),
   pollIdleDelayMs: asNumber(import.meta.env.VITE_POLL_IDLE_DELAY_MS, 1000),

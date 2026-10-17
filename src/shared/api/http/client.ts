@@ -1,5 +1,6 @@
 import type { GreenApiCredentials } from '@/shared/api/green-api/types';
 import { env } from '@/shared/config/env';
+import { resolveGreenApiBaseUrl } from '@/shared/lib/greenApi';
 
 export class ApiError extends Error {
   status: number;
@@ -26,7 +27,11 @@ export class GreenApiHttpClient {
 
   baseUrl(): string {
     const credentials = this.credentials();
-    return (credentials.apiUrl ?? env.greenApiBaseUrl).replace(/\/$/, '');
+    return resolveGreenApiBaseUrl({
+      idInstance: credentials.idInstance,
+      apiUrl: credentials.apiUrl,
+      override: env.greenApiBaseUrlOverride,
+    });
   }
 
   private url(method: string, query?: Record<string, string | number>, trailing?: string): string {
