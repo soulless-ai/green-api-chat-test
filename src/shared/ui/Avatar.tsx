@@ -36,7 +36,6 @@ export function Avatar({ src, name = 'Пользователь', size = 'md', cl
   const showFallback = !src || error;
 
   const trimmed = name.trim();
-  // Для телефонов показываем последние 2 цифры, для имён — первые 2 буквы
   const isPhone = /^\+?\d{7,}$/.test(trimmed);
   const initials = isPhone
     ? trimmed.slice(-2)
@@ -46,13 +45,15 @@ export function Avatar({ src, name = 'Пользователь', size = 'md', cl
         .slice(0, 2)
         .join('') || trimmed.slice(0, 2).toUpperCase() || '?';
 
+  const textClass = initials.length > 2 ? 'text-[9px] leading-tight' : 'text-xs font-semibold leading-none';
+
   const wrapperClass = `relative flex-shrink-0 ${SIZE_CLASSES[size]} ${className ?? ''}`;
 
   return (
     <div className={wrapperClass} aria-label={name}>
       {showFallback ? (
         <div className="flex items-center justify-center rounded-full overflow-hidden">
-          <div className={`w-full h-full flex items-center justify-center rounded-full ${fallbackColorFor(trimmed)} text-white text-xs font-semibold leading-none`}>
+          <div className={`w-full h-full flex items-center justify-center rounded-full ${fallbackColorFor(trimmed)} text-white ${textClass}`}>
             {initials}
           </div>
         </div>

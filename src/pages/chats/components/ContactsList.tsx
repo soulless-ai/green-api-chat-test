@@ -1,47 +1,61 @@
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { useChatsStore } from '@/entities/chat/model/chat';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getContacts } from '@/shared/api/repositories/contacts.repository';
-import { Avatar } from '@/shared/ui/Avatar';
+import { ContactItem } from './ContactItem';
 import { Button } from '@/shared/ui/Button';
-import type { Contact } from '@/shared/api/green-api/types';
+import { Preloader } from '@/shared/ui/Preloader';
+
+const PAGE_SIZE = 50;
 
 export function ContactsList() {
   const navigate = useNavigate();
   const credentials = useCredentialsStore((state) => state.credentials);
-  const addChat = useChatsStore((state) => state.addChat);
-  const setActiveChat = useChatsStore((state) => state.setActiveChat);
 
-  const contactsQuery = useQuery({
+  const contactsQuery = useInfiniteQuery({
     queryKey: ['contacts'],
     enabled: Boolean(credentials),
-    queryFn: async () => {
+    queryFn: async ({ pageParam = PAGE_SIZE }) => {
       if (!credentials) return [];
       const client = new GreenApiHttpClient(() => credentials);
-      return getContacts(client);
+      return getContacts(client, pageParam);
     },
+    getNextPageParam: (lastPage, pages) => {
+      if (lastPage.length === 0) return undefined;
+      return (pages.length * PAGE_SIZE) + PAGE_SIZE;
+    },
+    initialPageParam: PAGE_SIZE,
     staleTime: 1000 * 60 * 30,
   });
 
-  const createChatFromContact = (contact: Contact) => {
-    const phoneNumber = contact.phoneNumber ?? 0;
-    if (!phoneNumber) return;
-    const chatId = String(phoneNumber);
-    const existingChat = {
-      id: chatId,
-      chatId,
-      title: contact.name ?? `+${phoneNumber}`,
-      phone: String(phoneNumber),
-      messenger: credentials?.messenger ?? 'whatsapp',
-      createdAt: Date.now(),
-      avatarUrl: null,
-    };
-    addChat(existingChat);
-    setActiveChat(chatId);
-    navigate('/chats');
-  };
+  if (contactsQuery.isFetching && !contactsQuery.data) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center pt-20">
+        <Preloader size="lg" />
+        <p className="mt-3 text-base text-ga-dark-text-secondary">Загрузка контактов…</p>
+      </div>
+    );
+  }
+
+  if (!contactsQuery.data) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center pt-20">
+        <p className="text-base text-ga-dark-text-secondary">Не удалось загрузить контакты.</p>
+      </div>
+    );
+  }
+
+  const allContacts = contactsQuery.data.pages.flat();
+  const isFetchingMore = contactsQuery.isFetching && contactsQuery.data.pages.length > 1;
+
+  if (allContacts.length === 0) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center pt-20">
+        <p className="text-base text-ga-dark-text-secondary">Контакты не найдены.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -50,60 +64,23 @@ export function ContactsList() {
           ← Назад к чатам
         </Button>
         <h2 className="text-lg font-bold text-ga-dark-text">Контакты</h2>
-        <Button variant="ghost" size="sm">
-          Обновить
-        </Button>
       </div>
       <div className="flex-1 overflow-y-auto">
-        {contactsQuery.isLoading ? (
-          <div className="p-10 flex flex-col items-center justify-center text-ga-dark-text-secondary">
-            Загрузка контактов…
+        {allContacts.map((contact) => (
+          <ContactItem key={contact.chatId} contact={contact} />
+        ))}
+        {contactsQuery.hasNextPage && (
+          <div className="p-4 flex justify-center">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => contactsQuery.fetchNextPage()}
+              disabled={isFetchingMore}
+            >
+              {isFetchingMore ? <Preloader size="sm" className="mr-2" /> : null}
+              Загрузить еще
+            </Button>
           </div>
-        ) : !contactsQuery.data ? (
-          <p className="p-6 text-base text-center text-ga-dark-text-secondary">Не удалось загрузить контакты.</p>
-        ) : contactsQuery.data.length === 0 ? (
-          <p className="p-6 text-base text-center text-ga-dark-text-secondary">Контакты не найдены.</p>
-        ) : (
-          contactsQuery.data.map((contact) => {
-            const phoneNumber = contact.phoneNumber ?? 0;
-            const canWrite = phoneNumber > 0;
-            return (
-              <div
-                key={contact.chatId}
-                className="flex items-center gap-4 px-5 py-4 border-b border-ga-dark-border/50 hover:bg-ga-dark-border/50 transition-colors cursor-pointer group"
-                onClick={() => canWrite && createChatFromContact(contact)}
-              >
-                <Avatar
-                  name={contact.name ?? `+${phoneNumber}`}
-                  size="md"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-base font-medium text-ga-dark-text truncate">
-                    {contact.name ?? `+${phoneNumber}`}
-                  </div>
-                  {canWrite ? (
-                    <div className="text-sm text-ga-dark-text-secondary truncate">
-                      +{phoneNumber}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-ga-dark-text-secondary truncate">Без номера телефона</div>
-                  )}
-                </div>
-                {canWrite ? (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      createChatFromContact(contact);
-                    }}
-                  >
-                    Написать
-                  </Button>
-                ) : null}
-              </div>
-            );
-          })
         )}
       </div>
     </div>

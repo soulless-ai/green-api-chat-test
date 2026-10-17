@@ -44,7 +44,8 @@ export function MobileDrawer({ open, onOpenChange, onToggleSidebar }: MobileDraw
             aria-hidden="true"
           />
           <aside
-            className={`fixed inset-y-0 right-0 z-60 w-full md:w-96 bg-white dark:bg-[#1f2223] border-l border-ga-dark-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
+            className={`fixed top-[50%] left-[50%] z-60 w-full md:w-96 bg-white dark:bg-[#1f2223] border border-ga-dark-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${open ? 'translate-y-0 -translate-x-1/2 -translate-y-1/2' : 'translate-y-full -translate-x-1/2 -translate-y-full'}`}
+            style={{ maxHeight: '80vh', overflowY: 'auto' }}
             aria-modal="true"
             role="dialog"
             aria-label="Меню"

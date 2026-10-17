@@ -23,7 +23,6 @@ export function NotificationPoller() {
 
     const run = async () => {
       while (running.current) {
-        // Проверяем состояние перед каждым опросом — останавливаемся если не авторизован
         const state = await getStateInstance(client).catch(() => 'unknown' as const);
         if (state !== 'authorized') {
           await new Promise((resolve) => window.setTimeout(resolve, 5000));

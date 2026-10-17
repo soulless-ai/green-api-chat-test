@@ -12,7 +12,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// восстанавливаем тему из localStorage перед монтированием
 const savedTheme = localStorage.getItem('green-api-ui-theme');
 const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
 if (isDark) {

@@ -10,7 +10,9 @@ import { NewChatDialog } from './components/NewChatDialog';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
 import { env } from '@/shared/config/env';
 import { Header } from '@/shared/ui/Header';
+import { Button } from '@/shared/ui/Button';
 import { ChatListItem } from './components/ChatListItem';
+import { Skeleton } from '@/shared/ui/Skeleton';
 import { getChats } from '@/shared/api/repositories/chats.repository';
 import { useChatsStore, type Chat } from '@/entities/chat/model/chat';
 import type { ChatSummary } from '@/shared/api/green-api/types';
@@ -95,6 +97,38 @@ export function ChatsPage() {
     }
   };
 
+  const renderChatListSkeleton = () => (
+    <div className="flex flex-col h-full">
+      <div className="p-5 border-b border-ga-dark-border space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            <Skeleton width="60" height="1.5em" />
+            <Skeleton width="100" height="1em" />
+          </div>
+          <Button variant="primary" size="sm" disabled>
+            Новый чат
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          <Skeleton width="200" height="2.5em" className="rounded-full" />
+          <Skeleton width="60" height="2.5em" className="rounded-full" />
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto py-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-ga-dark-border/50">
+            <Skeleton width="36" height="36" className="rounded-full" />
+            <div className="flex-1 min-w-0">
+              <Skeleton width="120" height="1.25em" />
+              <Skeleton width="200" height="1em" className="mt-1" />
+            </div>
+            <Skeleton width="48" height="1.25em" className="rounded-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="h-dvh flex flex-col">
       <Header
@@ -133,7 +167,7 @@ export function ChatsPage() {
                     </svg>
                   </button>
                 </div>
-                <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
+                {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
               </div>
             </>
           ) : (
@@ -144,7 +178,7 @@ export function ChatsPage() {
         ) : (
           <>
             <div className="hidden md:flex w-80 shrink-0 flex-col bg-white dark:bg-[#1f2223]">
-              <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
+              {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
             </div>
             <ChatWindow />
           </>

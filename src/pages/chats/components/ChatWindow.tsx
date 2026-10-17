@@ -14,6 +14,7 @@ import { messengerProfiles } from '@/shared/api/green-api/profiles';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { EmojiPicker } from '@/shared/ui/EmojiPicker';
+import { Skeleton } from '@/shared/ui/Skeleton';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
 import type { Message } from '@/entities/message/model/message';
 import type { SendFileByUploadResponse } from '@/shared/api/green-api/types';
@@ -22,7 +23,7 @@ interface MessageWithDate extends Message {
   dateLabel?: string;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export function ChatWindow() {
   const credentials = useCredentialsStore((state) => state.credentials);
@@ -269,43 +270,58 @@ export function ChatWindow() {
       </header>
 
       <div ref={listRef} className="flex-1 overflow-y-auto px-5 py-4">
-        {messagesWithDates.map((message, index) => (
-          <React.Fragment key={`${message.dateLabel ?? message.id}-${index}`}>
-            {message.dateLabel ? (
-              <div key="date" className="my-3 flex items-center text-center">
-                <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-dark-text-secondary bg-white dark:bg-[#1f2223] border border-ga-dark-border">
-                  {message.dateLabel}
-                </span>
-              </div>
-            ) : null}
-            <div className={`flex ${message.direction === 'out' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${message.direction === 'out' ? 'bg-ga-message-card-bg text-ga-dark-text' : 'bg-white dark:bg-[#1f2223] text-ga-dark-text border border-ga-dark-border'}`}>
-                {(message.direction === 'in' && message.senderName) && (
-                  <div className="text-xs font-semibold text-ga-primary mb-1">{message.senderName}</div>
-                )}
-                {isMediaMessage(message) ? (
-                  <div className="flex flex-col gap-2">
-                    <img
-                      src={(message as any).mediaUrl}
-                      alt={message.text}
-                      className="max-w-full max-h-64 rounded-xl object-cover cursor-pointer"
-                    />
-                    <div className="text-xs text-ga-dark-text-secondary truncate">{message.text}</div>
-                  </div>
-                ) : (
-                  <div className="text-base whitespace-pre-wrap break-words">{message.text}</div>
-                )}
-                <div className="text-[11px] text-ga-dark-text-secondary text-right mt-2 flex items-center justify-end gap-2">
-                  <span>{formatTime(message.timestamp)}</span>
-                  {message.direction === 'out' ? (
-                    <span>{message.status === 'failed' ? '✗' : message.status === 'pending' ? '…' : '✓'}</span>
-                  ) : null}
+        {historyQuery.isLoading ? (
+          <div className="flex flex-col gap-4 py-10">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex justify-end gap-4 px-5 py-4 border-b border-ga-dark-border/50">
+                <Skeleton width="60" height="60" className="rounded-full" />
+                <div className="flex-1 min-w-0">
+                  <Skeleton width="100" height="1.25em" />
+                  <Skeleton width="180" height="1em" className="mt-1" />
                 </div>
               </div>
-            </div>
-          </React.Fragment>
-        ))}
-        {historyQuery.isLoading ? <p className="text-center text-sm text-ga-dark-text-secondary py-4">Загрузка истории…</p> : null}
+            ))}
+          </div>
+        ) : (
+          <>
+            {messagesWithDates.map((message, index) => (
+              <React.Fragment key={`${message.dateLabel ?? message.id}-${index}`}>
+                {message.dateLabel ? (
+                  <div key="date" className="my-3 flex items-center text-center">
+                    <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-dark-text-secondary bg-white dark:bg-[#1f2223] border border-ga-dark-border">
+                      {message.dateLabel}
+                    </span>
+                  </div>
+                ) : null}
+                <div className={`flex ${message.direction === 'out' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${message.direction === 'out' ? 'bg-ga-message-card-bg text-ga-dark-text' : 'bg-white dark:bg-[#1f2223] text-ga-dark-text border border-ga-dark-border'}`}>
+                    {(message.direction === 'in' && message.senderName) && (
+                      <div className="text-xs font-semibold text-ga-primary mb-1">{message.senderName}</div>
+                    )}
+                    {isMediaMessage(message) ? (
+                      <div className="flex flex-col gap-2">
+                        <img
+                          src={(message as any).mediaUrl}
+                          alt={message.text}
+                          className="max-w-full max-h-64 rounded-xl object-cover cursor-pointer"
+                        />
+                        <div className="text-xs text-ga-dark-text-secondary truncate">{message.text}</div>
+                      </div>
+                    ) : (
+                      <div className="text-base whitespace-pre-wrap break-words">{message.text}</div>
+                    )}
+                    <div className="text-[11px] text-ga-dark-text-secondary text-right mt-2 flex items-center justify-end gap-2">
+                      <span>{formatTime(message.timestamp)}</span>
+                      {message.direction === 'out' ? (
+                        <span>{message.status === 'failed' ? '✗' : message.status === 'pending' ? '…' : '✓'}</span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
+          </>
+        )}
       </div>
 
       <div className="bg-white dark:bg-[#1f2223] border-t border-ga-dark-border p-4">
