@@ -37,6 +37,8 @@ export default {
           // Dark theme colors (applied via dark: variant)
           darkText: '#fff',
           darkTextSecondary: 'rgba(255, 255, 255, 0.65)',
+          danger: '#d1242f',
+          darkDanger: '#d1242f',
           darkBorder: '#313131',
           darkPrimary: '#3b9702',
           darkBg: '#1a1a1a',

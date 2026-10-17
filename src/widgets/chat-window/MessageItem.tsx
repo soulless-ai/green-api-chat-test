@@ -12,7 +12,7 @@ export function MessageItem({ message, onDelete }: MessageItemProps) {
 
   return (
     <div className={`flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${isOutgoing ? 'bg-ga-light-messageCardBg text-ga-text dark:text-ga-darkText' : 'bg-white dark:bg-ga-darkMessageCardBg text-ga-text dark:text-ga-darkText border border-ga-border dark:border-ga-darkBorder'}`}>
+      <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${isOutgoing ? 'bg-ga-messageCardBg text-ga-text dark:bg-ga-darkMessageCardBg dark:text-ga-darkText' : 'bg-white dark:bg-ga-darkMessageCardBg text-ga-text dark:text-ga-darkText border border-ga-border dark:border-ga-darkBorder'}`}>
         {message.direction === 'in' && message.senderName && (
           <div className="text-xs font-semibold text-ga-primary mb-1">{message.senderName}</div>
         )}

@@ -80,7 +80,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-ga-light-bg flex items-center justify-center p-4">
+    <div className="min-h-screen bg-ga-bg flex items-center justify-center p-4">
       <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md bg-white dark:bg-ga-darkPanel rounded-2xl shadow p-6 space-y-4">
         <div>
           <h1 className="text-2xl font-semibold text-ga-text dark:text-ga-darkText">GREEN-API Chat</h1>

@@ -10,7 +10,7 @@ const VARIANT_CLASSES: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
     'bg-ga-primary text-white hover:bg-brand-600 active:bg-brand-700 disabled:opacity-60 disabled:pointer-events-none',
   danger:
-    'bg-ga-danger dark:bg-ga-darkDanger text-white hover:bg-d1242f/90 active:bg-d1242f disabled:opacity-60 disabled:pointer-events-none',
+    'bg-ga-danger dark:bg-ga-darkDanger text-white hover:bg-ga-danger/90 active:bg-ga-danger disabled:opacity-60 disabled:pointer-events-none',
   ghost:
     'bg-transparent text-ga-text dark:text-ga-darkText hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 active:bg-ga-border dark:active:bg-ga-darkBorder disabled:opacity-60 disabled:pointer-events-none',
   outline:

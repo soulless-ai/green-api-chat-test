@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useInstanceUiStore } from '@/entities/instance/model/instance';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
-import { getChatHistory, sendTyping, readChat, sendFileByUpload } from '@/shared/api/repositories/chats.repository';
+import { getChatHistory, sendTyping, readChat } from '@/shared/api/repositories/chats.repository';
 import { sendMessage } from '@/shared/api/repositories/messages.repository';
 import { createTempId } from '@/shared/lib/id';
 import { useToast } from '@/shared/ui/toast/ToastProvider';
@@ -18,8 +18,6 @@ import { EmptyChat } from './EmptyChat';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { deleteMessage } from '@/shared/api/repositories/chats.repository';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-
 export function ChatWindow() {
   const credentials = useCredentialsStore((state) => state.credentials);
   const activeChatId = useChatsStore((state) => state.activeChatId);
@@ -31,13 +29,9 @@ export function ChatWindow() {
   const updatePreview = useChatsStore((state) => state.updatePreview);
   const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
   const toast = useToast();
   const [draft, setDraft] = useState('');
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadingFile, setUploadingFile] = useState(false);
   const [deleteConfirmMessageId, setDeleteConfirmMessageId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -126,47 +120,6 @@ export function ChatWindow() {
     },
   });
 
-  const sendFileMutation = useMutation({
-    mutationFn: async () => {
-      if (!credentials || !chat || !selectedFile) throw new Error('Missing data');
-      const client = new GreenApiHttpClient(() => credentials);
-      return sendFileByUpload(client, chat.chatId, selectedFile, draft.trim() || undefined);
-    },
-    onMutate: async () => {
-      if (!activeChatId || !selectedFile) return;
-      const tempId = createTempId();
-      const optimistic = {
-        id: tempId,
-        chatId: chat?.chatId ?? '',
-        direction: 'out' as const,
-        text: selectedFile.name,
-        timestamp: Math.floor(Date.now() / 1000),
-        status: 'pending' as const,
-        isOptimistic: true,
-        mediaUrl: URL.createObjectURL(selectedFile),
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-      };
-      upsertMessage(activeChatId, optimistic);
-      return { tempId };
-    },
-    onSuccess: (result, _context) => {
-      if (!activeChatId) return;
-      const fileName = selectedFile?.name ?? 'файл';
-      setSelectedFile(null);
-      setUploadingFile(false);
-      updatePreview(activeChatId, `📎 ${fileName}`, Math.floor(Date.now() / 1000));
-      queryClient.invalidateQueries({ queryKey: ['chat-history', activeChatId] });
-      toast.show('Файл отправлен', 'success');
-    },
-    onError: (error, _error, context) => {
-      if (!activeChatId || !context) return;
-      setUploadingFile(false);
-      markFailed(activeChatId, context.tempId);
-      toast.show(error instanceof Error ? error.message : 'Не удалось отправить файл', 'error');
-    },
-  });
-
   const messages = useMemo(() => {
     const list = activeChatId ? messagesByChat[activeChatId] ?? [] : [];
     return [...list].sort((a, b) => a.timestamp - b.timestamp);
@@ -193,26 +146,6 @@ export function ChatWindow() {
     sendMutation.mutate(text);
   };
 
-  const handleFileChange = (file: File | null) => {
-    if (!file) return;
-    if (file.size > MAX_FILE_SIZE) {
-      toast.show('Файл слишком большой (макс. 10 МБ)', 'error');
-      return;
-    }
-    setSelectedFile(file);
-  };
-
-  const handleSendFile = () => {
-    if (!selectedFile) return;
-    setUploadingFile(true);
-    sendFileMutation.mutate();
-  };
-
-  const removeSelectedFile = () => {
-    setSelectedFile(null);
-    setUploadingFile(false);
-  };
-
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmMessageId || !credentials || !chat || !activeChatId) return;
     try {
@@ -229,10 +162,10 @@ export function ChatWindow() {
   }
 
   return (
-    <section className="flex-1 flex flex-col bg-ga-light-chatBg dark:bg-ga-darkChatBg">
+    <section className="flex-1 flex flex-col bg-ga-chatBg dark:bg-ga-darkChatBg">
       <ChatHeader chatId={activeChatId} onBack={isMobile ? toggleSidebar : undefined} />
       {typingUsers.length > 0 && (
-        <div className="mt-2 text-sm font-medium text-ga-dark-primary italic px-5">
+        <div className="mt-2 text-sm font-medium text-ga-primary italic px-5">
           {typingUsers.join(', ')} печатает…
         </div>
       )}
@@ -241,42 +174,10 @@ export function ChatWindow() {
       </div>
       <MessageComposer
         onSend={handleSend}
-        onSendFile={handleSendFile}
-        onFileChange={handleFileChange}
-        onRemoveFile={removeSelectedFile}
-        onToggleEmoji={() => setEmojiPickerOpen(!emojiPickerOpen)}
         isSending={sendMutation.isPending}
-        selectedFile={selectedFile}
-        uploadingFile={uploadingFile}
         draft={draft}
         setDraft={setDraft}
       />
-      {emojiPickerOpen && (
-        <div className="flex justify-end pr-2">
-          <div
-            className="fixed bottom-[110px] right-4 w-64 bg-white dark:bg-ga-darkPanel border border-ga-border dark:border-ga-darkBorder rounded-xl shadow-lg p-2 z-40 flex flex-col gap-2"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Выбор смайлика"
-          >
-            <div className="flex-wrap gap-1">
-              {['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '😝', '🤗', '🤭', '🤫', '🤔', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '🙀', '👍', '👎', '❤️', '🔥', '😭', '🎉', '✨', '💯', '🤔'].map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => {
-                    setDraft((prev) => prev + emoji);
-                    setEmojiPickerOpen(false);
-                  }}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-lg hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors"
-                  aria-label={`Смайлик ${emoji}`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
       <ConfirmDialog
         open={deleteConfirmMessageId !== null}
         onConfirm={handleDeleteConfirm}

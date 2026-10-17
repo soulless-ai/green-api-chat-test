@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import type { Message } from '@/entities/message/model/message';
-import { formatTime } from '@/shared/lib/date';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { MessageItem } from './MessageItem';
 
@@ -12,6 +11,45 @@ interface MessageListProps {
 
 interface MessageWithDate extends Message {
   dateLabel?: string;
+}
+
+const LOADING_BUBBLES: Array<{ outgoing: boolean; lines: string[] }> = [
+  { outgoing: false, lines: ['72%', '48%'] },
+  { outgoing: true, lines: ['64%'] },
+  { outgoing: true, lines: ['58%', '36%'] },
+  { outgoing: false, lines: ['80%'] },
+  { outgoing: false, lines: ['66%', '42%'] },
+  { outgoing: true, lines: ['52%'] },
+];
+
+function MessageBubbleSkeleton({
+  outgoing,
+  lines,
+}: {
+  outgoing: boolean;
+  lines: string[];
+}) {
+  return (
+    <div className={`flex ${outgoing ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`w-56 max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+          outgoing
+            ? 'bg-ga-messageCardBg dark:bg-ga-darkMessageCardBg'
+            : 'bg-white dark:bg-ga-darkMessageCardBg border border-ga-border dark:border-ga-darkBorder'
+        }`}
+      >
+        {lines.map((width, index) => (
+          <Skeleton
+            key={index}
+            width={width}
+            height="0.875rem"
+            className={index > 0 ? 'mt-2' : ''}
+          />
+        ))}
+        <Skeleton width="2.5rem" height="0.5rem" className="mt-2.5 ml-auto" />
+      </div>
+    </div>
+  );
 }
 
 export function MessageList({ messages, isLoading, onDelete }: MessageListProps) {
@@ -34,22 +72,20 @@ export function MessageList({ messages, isLoading, onDelete }: MessageListProps)
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4 py-10">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex justify-end gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50">
-            <Skeleton width="60" height="60" className="rounded-full" />
-            <div className="flex-1 min-w-0">
-              <Skeleton width="100" height="1.25em" />
-              <Skeleton width="180" height="1em" className="mt-1" />
-            </div>
-          </div>
+      <div className="flex flex-col gap-3 py-2">
+        {LOADING_BUBBLES.map((bubble, index) => (
+          <MessageBubbleSkeleton
+            key={index}
+            outgoing={bubble.outgoing}
+            lines={bubble.lines}
+          />
         ))}
       </div>
     );
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-3">
       {messagesWithDates.map((message, index) => (
         <React.Fragment key={`${message.dateLabel ?? message.id}-${index}`}>
           {message.dateLabel ? (
@@ -62,6 +98,6 @@ export function MessageList({ messages, isLoading, onDelete }: MessageListProps)
           <MessageItem key={message.id} message={message} onDelete={() => { onDelete?.(message.id); }} />
         </React.Fragment>
       ))}
-    </>
+    </div>
   );
 }
