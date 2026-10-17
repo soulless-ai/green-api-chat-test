@@ -26,10 +26,9 @@ export function ChatsPage() {
   const setTheme = useInstanceUiStore((state) => state.setTheme);
   const sidebarOpen = useInstanceUiStore((state) => state.sidebarOpen);
   const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
-  const updateChat = useChatsStore((state) => state.updateChat);
+  const setChatsList = useChatsStore((state) => state.setChatsList);
   const setAvatarUrl = useChatsStore((state) => state.setAvatarUrl);
   const setCredentials = useCredentialsStore((state) => state.setCredentials);
-  const chats = useChatsStore((state) => state.chats);
   const isMobile = useIsMobile();
   const [newChatOpen, setNewChatOpen] = useState(false);
 
@@ -46,7 +45,11 @@ export function ChatsPage() {
   });
 
   const chatsQuery = useQuery({
-    queryKey: ['chats'],
+    queryKey: [
+      'chats',
+      credentials?.idInstance,
+      credentials?.messenger,
+    ],
     enabled: Boolean(credentials),
     queryFn: async () => {
       if (!credentials) return [];
@@ -87,32 +90,26 @@ export function ChatsPage() {
   useEffect(() => {
     if (!chatsQuery.data || !credentials) return;
 
-    for (const summary of chatsQuery.data) {
-      if (!summary.chatId) continue;
+    const chats: Chat[] = chatsQuery.data
+      .filter((summary) => summary.chatId)
+      .map((summary) => {
+        const phoneNumber = summary.phoneNumber ?? 0;
+        return {
+          id: summary.chatId,
+          chatId: summary.chatId,
+          title:
+            summary.name ||
+            (phoneNumber > 0 ? String(phoneNumber) : summary.chatId),
+          phone: phoneNumber > 0 ? String(phoneNumber) : undefined,
+          messenger: credentials.messenger ?? 'whatsapp',
+          createdAt: Date.now(),
+          unreadCount: summary.unreadCount,
+          avatarUrl: null,
+        };
+      });
 
-      const phoneNumber = summary.phoneNumber ?? 0;
-
-      const chat: Chat = {
-        id: summary.chatId,
-        chatId: summary.chatId,
-        title:
-          summary.name ||
-          (phoneNumber > 0 ? String(phoneNumber) : summary.chatId),
-        phone: phoneNumber > 0 ? String(phoneNumber) : undefined,
-        messenger: credentials.messenger ?? 'whatsapp',
-        createdAt: Date.now(),
-        unreadCount: summary.unreadCount,
-        avatarUrl: null,
-      };
-
-      updateChat(chat);
-    }
-  }, [
-    chatsQuery.data,
-    credentials?.messenger,
-    credentials?.idInstance,
-    updateChat,
-  ]);
+    setChatsList(chats);
+  }, [chatsQuery.data, credentials?.messenger, setChatsList]);
 
   const statusLabelMap: Record<string, string> = {
     authorized: 'Авторизован',

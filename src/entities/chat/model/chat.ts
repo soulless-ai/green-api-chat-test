@@ -28,6 +28,7 @@ interface ChatsState {
   removeChat: (id: string) => void;
   updatePreview: (chatId: string, preview: string, at: number) => void;
   setAvatarUrl: (chatId: string, avatarUrl: string | null) => void;
+  setChatsList: (chats: Chat[]) => void;
   setContacts: (contacts: Contact[]) => void;
   setMessages: (chatId: string, messages: Message[]) => void;
   upsertMessage: (chatId: string, message: Message) => void;
@@ -60,18 +61,25 @@ export const useChatsStore = create<ChatsState>()(
             return { chats: [chat, ...state.chats] };
           }
 
+          const existing = state.chats[index];
+
+          if (!existing) {
+            return state;
+          }
+
           const chats = [...state.chats];
 
           chats[index] = {
-            ...chats[index],
+            ...existing,
             ...chat,
+            createdAt: existing.createdAt,
             lastMessagePreview:
-              chat.lastMessagePreview ?? chats[index].lastMessagePreview,
+              chat.lastMessagePreview ?? existing.lastMessagePreview,
             lastMessageAt:
-              chat.lastMessageAt ?? chats[index].lastMessageAt,
-            avatarUrl: chat.avatarUrl ?? chats[index].avatarUrl,
-            unreadCount: chat.unreadCount ?? chats[index].unreadCount,
-            phone: chat.phone ?? chats[index].phone,
+              chat.lastMessageAt ?? existing.lastMessageAt,
+            avatarUrl: chat.avatarUrl ?? existing.avatarUrl,
+            unreadCount: chat.unreadCount ?? existing.unreadCount,
+            phone: chat.phone ?? existing.phone,
           };
 
           return { chats };
@@ -91,6 +99,7 @@ export const useChatsStore = create<ChatsState>()(
         set((state) => ({
           chats: state.chats.map((chat) => (chat.chatId === chatId ? { ...chat, avatarUrl } : chat)),
         })),
+      setChatsList: (chats: Chat[]) => set({ chats }),
       setContacts: (contacts) => set({ contacts }),
       setMessages: (chatId, messages) =>
         set((state) => ({ messagesByChat: { ...state.messagesByChat, [chatId]: messages } })),
