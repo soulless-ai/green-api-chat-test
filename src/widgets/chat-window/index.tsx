@@ -82,7 +82,7 @@ export function ChatWindow() {
     if (credentials && chat) {
       readChat(new GreenApiHttpClient(() => credentials), chat.chatId).catch(() => {});
     }
-  }, [activeChatId, historyQuery.data, messagesByChat, setMessages, credentials, chat]);
+  }, [activeChatId, historyQuery.data, setMessages, credentials, chat]);
 
   const sendMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -159,10 +159,10 @@ export function ChatWindow() {
       queryClient.invalidateQueries({ queryKey: ['chat-history', activeChatId] });
       toast.show('Файл отправлен', 'success');
     },
-    onError: (error, _context) => {
-      if (!activeChatId) return;
+    onError: (error, _error, context) => {
+      if (!activeChatId || !context) return;
       setUploadingFile(false);
-      markFailed(activeChatId, createTempId());
+      markFailed(activeChatId, context.tempId);
       toast.show(error instanceof Error ? error.message : 'Не удалось отправить файл', 'error');
     },
   });
@@ -214,9 +214,10 @@ export function ChatWindow() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteConfirmMessageId || !credentials || !chat) return;
+    if (!deleteConfirmMessageId || !credentials || !chat || !activeChatId) return;
     try {
       await deleteMessage(new GreenApiHttpClient(() => credentials), chat.chatId, deleteConfirmMessageId);
+      setMessages(activeChatId, (messagesByChat[activeChatId] ?? []).filter((m: Message) => m.id !== deleteConfirmMessageId));
       setDeleteConfirmMessageId(null);
     } catch {
       setDeleteConfirmMessageId(null);

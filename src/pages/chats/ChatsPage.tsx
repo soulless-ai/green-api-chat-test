@@ -14,7 +14,7 @@ import { ChatWindow } from '@/widgets/chat-window';
 import { NewChatDialog } from '@/widgets/new-chat-dialog';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { getChats } from '@/shared/api/repositories/chats.repository';
-import { getAccountSettings } from '@/shared/api/repositories/instance.repository';
+import { getMessengerSettings } from '@/shared/api/repositories/instance.repository';
 import { useChatsStore, type Chat } from '@/entities/chat/model/chat';
 import type { ChatSummary } from '@/shared/api/green-api/types';
 
@@ -41,7 +41,7 @@ export function ChatsPage() {
       const client = new GreenApiHttpClient(() => credentials);
       return getStateInstance(client);
     },
-    refetchInterval: 120000,
+    refetchInterval: 0,
     retry: 1,
   });
 
@@ -58,26 +58,31 @@ export function ChatsPage() {
   });
 
   const accountQuery = useQuery({
-    queryKey: ['account-settings'],
+    queryKey: ['account-settings', credentials?.messenger],
     enabled: Boolean(credentials) && stateQuery.data === 'authorized',
     queryFn: async () => {
       if (!credentials) return null;
+    
       const client = new GreenApiHttpClient(() => credentials);
-      return getAccountSettings(client);
+    
+      return getMessengerSettings(
+        client,
+        credentials.messenger ?? 'whatsapp',
+      );
     },
     refetchInterval: 300000,
     retry: 1,
   });
 
   useEffect(() => {
-    if (accountQuery.data?.avatar && accountQuery.data.chatId) {
+    if (accountQuery.data?.avatar && accountQuery.data.chatId && credentials?.avatarUrl !== accountQuery.data.avatar) {
       setAvatarUrl(accountQuery.data.chatId, accountQuery.data.avatar);
       setCredentials(
         { ...credentials!, avatarUrl: accountQuery.data.avatar },
         true,
       );
     }
-  }, [accountQuery.data, credentials, setAvatarUrl, setCredentials]);
+  }, [accountQuery.data, credentials?.avatarUrl, setAvatarUrl, setCredentials]);
 
   useEffect(() => {
     if (!chatsQuery.data) return;

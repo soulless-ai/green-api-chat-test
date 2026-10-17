@@ -8,13 +8,14 @@ import { receiveNotification, deleteNotification } from '@/shared/api/repositori
 import { mapNotificationToMessage } from '../lib/mapNotification';
 import { env } from '@/shared/config/env';
 
-const STATE_CHECK_INTERVAL = 30000;
+const STATE_CHECK_INTERVAL = 60000;
+const RATE_LIMIT_BACKOFF = 30000;
 
 export function NotificationPoller() {
   const credentials = useCredentialsStore((state) => state.credentials);
   const queryClient = useQueryClient();
   const running = useRef(true);
-  const [state, setState] = useState<'authorized' | 'notAuthorized' | 'starting' | 'blocked' | 'sleepMode' | 'unknown' | null>(null);
+  const rateLimitBackoff = useRef(0);
 
   useEffect(() => {
     if (!credentials) return;
@@ -24,9 +25,14 @@ export function NotificationPoller() {
     let stateCheckTimer: ReturnType<typeof setTimeout> | null = null;
 
     const checkState = async () => {
-      const s = await getStateInstance(client).catch(() => 'unknown' as const);
-      setState(s);
-      return s;
+      try {
+        const s = await getStateInstance(client);
+        rateLimitBackoff.current = 0;
+        return s;
+      } catch {
+        rateLimitBackoff.current = Math.min(rateLimitBackoff.current + RATE_LIMIT_BACKOFF, 300000);
+        return 'unknown' as const;
+      }
     };
 
     const run = async () => {
@@ -83,9 +89,10 @@ export function NotificationPoller() {
           }
 
           await deleteNotification(client, notification.receiptId);
+          rateLimitBackoff.current = 0;
         } catch {
           currentState = await checkState();
-          await new Promise((resolve) => window.setTimeout(resolve, env.pollBackoffBaseMs));
+          await new Promise((resolve) => window.setTimeout(resolve, Math.max(env.pollBackoffBaseMs, rateLimitBackoff.current)));
         }
       }
 
