@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useInstanceUiStore } from '@/entities/instance/model/instance';
-import { GreenApiHttpClient } from '@/shared/api/http/client';
-import { getStateInstance } from '@/shared/api/repositories/instance.repository';
+import {
+  GreenApiHttpClient,
+  isQuotaExceededError,
+} from '@/shared/api/http/client';
+import {
+  getStateInstance,
+  getMessengerSettings,
+} from '@/shared/api/repositories/instance.repository';
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
 import { Header } from '@/shared/ui/Header';
@@ -11,7 +17,6 @@ import { Button } from '@/shared/ui/Button';
 import { ChatSidebar } from '@/widgets/chat-sidebar';
 import { ChatWindow } from '@/widgets/chat-window';
 import { NewChatDialog } from '@/widgets/new-chat-dialog';
-import { getMessengerSettings } from '@/shared/api/repositories/instance.repository';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useChatsQuery } from '@/entities/chat/api/useChatsQuery';
 import { summaryToChat } from '@/entities/chat/lib/chat';
@@ -24,11 +29,12 @@ export function ChatsPage() {
   const setTheme = useInstanceUiStore((state) => state.setTheme);
   const sidebarOpen = useInstanceUiStore((state) => state.sidebarOpen);
   const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
-  const setChatsList = useChatsStore((state) => state.setChatsList);
   const setAvatarUrl = useChatsStore((state) => state.setAvatarUrl);
+  const setChatsList = useChatsStore((state) => state.setChatsList);
   const setCredentials = useCredentialsStore((state) => state.setCredentials);
   const isMobile = useIsMobile();
   const [newChatOpen, setNewChatOpen] = useState(false);
+  const handleNewChat = useCallback(() => setNewChatOpen(true), []);
 
   const stateQuery = useQuery({
     queryKey: ['instance-state'],
@@ -39,10 +45,7 @@ export function ChatsPage() {
       return getStateInstance(client);
     },
     refetchInterval: 0,
-    retry: 1,
   });
-
-  const chatsQuery = useChatsQuery();
 
   const accountQuery = useQuery({
     queryKey: ['account-settings', credentials?.messenger],
@@ -58,8 +61,29 @@ export function ChatsPage() {
       );
     },
     refetchInterval: 300000,
-    retry: 1,
   });
+
+  const chatsQuery = useChatsQuery();
+  const messenger = credentials?.messenger ?? 'whatsapp';
+
+  const chats = useMemo(
+    () =>
+      (chatsQuery.data ?? []).map((summary) =>
+        summaryToChat(summary, messenger),
+      ),
+    [chatsQuery.data, messenger],
+  );
+
+  useEffect(() => {
+    if (!chatsQuery.data || !credentials) return;
+    setChatsList(chats);
+  }, [chatsQuery.data, chats, credentials, setChatsList]);
+
+  const handleRetryChats = useCallback(() => {
+    void chatsQuery.refetch();
+  }, [chatsQuery.refetch]);
+
+  const chatsQuotaExceeded = isQuotaExceededError(chatsQuery.error);
 
   useEffect(() => {
     if (accountQuery.data?.avatar && accountQuery.data.chatId && credentials?.avatarUrl !== accountQuery.data.avatar) {
@@ -70,16 +94,6 @@ export function ChatsPage() {
       );
     }
   }, [accountQuery.data, credentials?.avatarUrl, setAvatarUrl, setCredentials]);
-
-  useEffect(() => {
-    if (!chatsQuery.data || !credentials) return;
-
-    const messenger = credentials.messenger ?? 'whatsapp';
-
-    setChatsList(
-      chatsQuery.data.map((summary) => summaryToChat(summary, messenger)),
-    );
-  }, [chatsQuery.data, credentials?.messenger, setChatsList]);
 
   const statusLabelMap: Record<string, string> = {
     authorized: 'Авторизован',
@@ -142,7 +156,14 @@ export function ChatsPage() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   <div className="p-4">
                     <h3 className="text-sm font-semibold text-ga-text dark:text-ga-darkText-secondary uppercase tracking-wider mb-3">Чаты</h3>
-                    <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
+                    <ChatSidebar
+                      chats={chats}
+                      isLoading={chatsQuery.isLoading}
+                      isError={chatsQuery.isError}
+                      quotaExceeded={chatsQuotaExceeded}
+                      onRetry={handleRetryChats}
+                      onNewChat={handleNewChat}
+                    />
                   </div>
                   <div className="px-4 pb-4">
                     <Button
@@ -168,7 +189,14 @@ export function ChatsPage() {
         ) : (
           <>
             <div className="hidden md:flex w-80 shrink-0 flex-col bg-white dark:bg-ga-darkPanel">
-              <ChatSidebar onNewChat={() => setNewChatOpen(true)} />
+              <ChatSidebar
+                chats={chats}
+                isLoading={chatsQuery.isLoading}
+                isError={chatsQuery.isError}
+                quotaExceeded={chatsQuotaExceeded}
+                onRetry={handleRetryChats}
+                onNewChat={handleNewChat}
+              />
             </div>
             <ChatWindow />
           </>

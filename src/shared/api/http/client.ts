@@ -1,23 +1,73 @@
 import type { GreenApiCredentials } from '@/shared/api/green-api/types';
 import { env } from '@/shared/config/env';
 import { resolveGreenApiBaseUrl } from '@/shared/lib/greenApi';
+import { limitMethod } from '@/shared/api/http/rateLimiter';
+
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+const MAX_ATTEMPTS = 3;
+const REQUEST_TIMEOUT_MS = 30000;
 
 export class ApiError extends Error {
   status: number;
   code?: string;
+  retryable: boolean;
   raw?: unknown;
 
-  constructor(message: string, status: number, code?: string, raw?: unknown) {
+  constructor(
+    message: string,
+    status: number,
+    options: { code?: string; retryable?: boolean; raw?: unknown } = {},
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
-    this.code = code;
-    this.raw = raw;
+    this.code = options.code;
+    this.retryable = options.retryable ?? RETRYABLE_STATUSES.has(status);
+    this.raw = options.raw;
   }
 }
 
+export function isQuotaExceededError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 466;
+}
+
+function errorCodeFrom(data: unknown): string | undefined {
+  if (typeof data !== 'object' || data === null) return undefined;
+
+  const record = data as Record<string, unknown>;
+  const invokeStatus = record.invokeStatus;
+
+  if (typeof invokeStatus === 'object' && invokeStatus !== null) {
+    const status = (invokeStatus as Record<string, unknown>).status;
+    if (typeof status === 'string') return status;
+  }
+
+  const error = record.error;
+  if (typeof error === 'string') return error;
+
+  return undefined;
+}
+
+function errorMessageFrom(data: unknown, fallback: string): string {
+  if (typeof data === 'object' && data !== null) {
+    const record = data as Record<string, unknown>;
+    const invokeStatus = record.invokeStatus;
+
+    if (typeof invokeStatus === 'object' && invokeStatus !== null) {
+      const description = (invokeStatus as Record<string, unknown>).description;
+      if (typeof description === 'string' && description.length > 0) {
+        return description;
+      }
+    }
+  }
+
+  return fallback;
+}
+
 export class GreenApiHttpClient {
-  constructor(private readonly getCredentials: () => GreenApiCredentials | null) {}
+  constructor(
+    private readonly getCredentials: () => GreenApiCredentials | null,
+  ) {}
 
   credentials(): GreenApiCredentials {
     const credentials = this.getCredentials();
@@ -34,29 +84,55 @@ export class GreenApiHttpClient {
     });
   }
 
-  private url(method: string, query?: Record<string, string | number>, trailing?: string): string {
+  private url(
+    method: string,
+    query?: Record<string, string | number>,
+    trailing?: string,
+  ): string {
     const credentials = this.credentials();
     const base = this.baseUrl();
     const pathname = `${base}/waInstance${credentials.idInstance}/${method}/${credentials.apiTokenInstance}${trailing ? `/${trailing}` : ''}`;
+
     if (!query || Object.keys(query).length === 0) return pathname;
+
     const params = new URLSearchParams();
-    Object.entries(query).forEach(([key, value]) => params.set(key, String(value)));
+    Object.entries(query).forEach(([key, value]) =>
+      params.set(key, String(value)),
+    );
+
     return `${pathname}?${params.toString()}`;
   }
 
-  async request<T>(method: string, apiMethod: string, init: RequestInit = {}, query?: Record<string, string | number>, trailing?: string): Promise<T | null> {
+  async request<T>(
+    method: string,
+    apiMethod: string,
+    init: RequestInit = {},
+    query?: Record<string, string | number>,
+    trailing?: string,
+  ): Promise<T | null> {
+    const credentials = this.credentials();
     const url = this.url(apiMethod, query, trailing);
-    let lastError: Error | null = null;
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    let lastError: ApiError | null = null;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
       const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 30000);
+      const timeout = window.setTimeout(
+        () => controller.abort(),
+        REQUEST_TIMEOUT_MS,
+      );
+
       try {
-        const response = await fetch(url, {
-          ...init,
-          method,
-          headers: { 'Content-Type': 'application/json', ...(init.headers ?? {}) },
-          signal: controller.signal,
-        });
+        const response = await limitMethod(apiMethod, credentials.idInstance, () =>
+          fetch(url, {
+            ...init,
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(init.headers ?? {}),
+            },
+            signal: controller.signal,
+          }),
+        );
 
         if (response.status === 204) return null;
 
@@ -64,38 +140,37 @@ export class GreenApiHttpClient {
         const data = text ? (JSON.parse(text) as unknown) : null;
 
         if (!response.ok) {
-          const code = typeof data === 'object' && data !== null ? String((data as Record<string, unknown>).error ?? '') : undefined;
-          const shouldRetry =
-            (response.status >= 500 || response.status === 429) && attempt < 2;
-          if (shouldRetry) {
-            await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
-            continue;
-          }
-          throw new ApiError(response.statusText || 'Ошибка запроса', response.status, code, data);
+          throw new ApiError(errorMessageFrom(data, response.statusText), response.status, {
+            code: errorCodeFrom(data),
+            raw: data,
+          });
         }
 
         return data as T;
       } catch (error) {
-        if (error instanceof ApiError) {
-          if (error.status >= 500 && attempt < 2) {
-            lastError = error;
-            await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
-            continue;
-          }
-          throw error;
-        }
-        lastError = error instanceof DOMException && error.name === 'AbortError'
-          ? new ApiError('Превышено время ожидания запроса', 408)
-          : new ApiError(error instanceof Error ? error.message : 'Ошибка сети', 0);
-        if (attempt < 2) {
-          await new Promise((resolve) => window.setTimeout(resolve, 500 * 2 ** attempt));
+        lastError =
+          error instanceof ApiError
+            ? error
+            : error instanceof DOMException && error.name === 'AbortError'
+              ? new ApiError('Превышено время ожидания запроса', 408)
+              : new ApiError(
+                  error instanceof Error ? error.message : 'Ошибка сети',
+                  0,
+                );
+
+        if (lastError.retryable && attempt < MAX_ATTEMPTS - 1) {
+          await new Promise((resolve) =>
+            window.setTimeout(resolve, 1000 * 2 ** attempt),
+          );
           continue;
         }
+
+        throw lastError;
       } finally {
         window.clearTimeout(timeout);
       }
     }
 
-    throw lastError ?? new ApiError('Ошибка запроса', 0);
+    throw lastError;
   }
 }

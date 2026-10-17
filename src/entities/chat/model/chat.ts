@@ -15,7 +15,6 @@ export interface Chat {
   lastMessageAt?: number;
   avatarUrl?: string | null;
   unreadCount?: number;
-  hasName?: boolean;
 }
 
 interface ChatsState {
@@ -81,7 +80,6 @@ export const useChatsStore = create<ChatsState>()(
             avatarUrl: chat.avatarUrl ?? existing.avatarUrl,
             unreadCount: chat.unreadCount ?? existing.unreadCount,
             phone: chat.phone ?? existing.phone,
-            hasName: chat.hasName ?? existing.hasName,
           };
 
           return { chats };
@@ -117,7 +115,6 @@ export const useChatsStore = create<ChatsState>()(
               lastMessagePreview:
                 existing.lastMessagePreview ?? chat.lastMessagePreview,
               lastMessageAt: existing.lastMessageAt ?? chat.lastMessageAt,
-              hasName: chat.hasName || existing.hasName,
             };
           }),
         })),

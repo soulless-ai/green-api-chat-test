@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
-import { getContactInfo } from '@/shared/api/repositories/contacts.repository';
+import { getAvatar } from '@/shared/api/repositories/chats.repository';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -31,8 +31,8 @@ export function ContactItem({ contact }: ContactItemProps) {
     queryFn: async () => {
       if (!credentials || !contact.chatId) return null;
       const client = new GreenApiHttpClient(() => credentials);
-      const info = await getContactInfo(client, contact.chatId);
-      return info?.avatar ?? null;
+      const avatar = await getAvatar(client, contact.chatId);
+      return avatar?.urlAvatar ?? null;
     },
     staleTime: Infinity,
   });

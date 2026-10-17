@@ -24,6 +24,5 @@ export function useChatsQuery() {
     },
     refetchInterval: 300000,
     staleTime: 60000,
-    retry: 1,
   });
 }

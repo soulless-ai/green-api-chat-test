@@ -12,22 +12,6 @@ export function isGroupChatId(chatId: string): boolean {
   return chatId.endsWith('@g.us');
 }
 
-export function resolveContactName(
-  name: string | undefined,
-  contactName: string | undefined,
-): string | undefined {
-  return name?.trim() || contactName?.trim() || undefined;
-}
-
-export function resolveAvatar(
-  avatar: string | undefined,
-  base64Avatar: string | undefined,
-): string | null {
-  if (avatar) return avatar;
-  if (base64Avatar) return `data:image/jpeg;base64,${base64Avatar}`;
-  return null;
-}
-
 export function summaryToChat(summary: ChatSummary, messenger: MessengerId): Chat {
   const phone = chatIdToPhone(summary.id);
   const name = summary.name?.trim();
@@ -41,6 +25,5 @@ export function summaryToChat(summary: ChatSummary, messenger: MessengerId): Cha
     createdAt: Date.now(),
     unreadCount: summary.unreadCount,
     avatarUrl: null,
-    hasName: Boolean(name),
   };
 }

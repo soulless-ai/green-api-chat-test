@@ -1,11 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { useChatsStore } from '@/entities/chat/model/chat';
-import { useChatContactQuery } from '@/entities/chat/api/useChatContactQuery';
-import {
-  isGroupChatId,
-  resolveAvatar,
-  resolveContactName,
-} from '@/entities/chat/lib/chat';
+import { useChatAvatarQuery } from '@/entities/chat/api/useChatAvatarQuery';
+import { isGroupChatId } from '@/entities/chat/lib/chat';
 import { formatPhone } from '@/shared/lib/phone';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Skeleton } from '@/shared/ui/Skeleton';
@@ -13,9 +9,11 @@ import type { Chat } from '@/entities/chat/model/chat';
 
 interface ChatListItemProps {
   chat: Chat;
+  isActive: boolean;
+  onSelect: (chatId: string) => void;
 }
 
-export function ChatListItemSkeleton() {
+export const ChatListItemSkeleton = memo(function ChatListItemSkeleton() {
   return (
     <div className="flex items-center gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50">
       <Skeleton width="36" height="36" className="rounded-full shrink-0" />
@@ -25,11 +23,9 @@ export function ChatListItemSkeleton() {
       </div>
     </div>
   );
-}
+});
 
-export function ChatListItem({ chat }: ChatListItemProps) {
-  const activeChatId = useChatsStore((state) => state.activeChatId);
-  const setActiveChat = useChatsStore((state) => state.setActiveChat);
+function ChatListItemComponent({ chat, isActive, onSelect }: ChatListItemProps) {
   const updateChat = useChatsStore((state) => state.updateChat);
   const [isVisible, setIsVisible] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -54,51 +50,29 @@ export function ChatListItem({ chat }: ChatListItemProps) {
     return () => observer.disconnect();
   }, [isVisible]);
 
-  const contactQuery = useChatContactQuery(chat.chatId, isVisible && !isGroup);
-  const info = contactQuery.data ?? null;
-
-  const isActive = activeChatId === chat.id;
-  const isResolving = isVisible && !isGroup && contactQuery.isPending;
-  const showTextSkeleton = isResolving && !chat.hasName;
-
-  const resolvedName = info
-    ? resolveContactName(info.name, info.contactName)
-    : undefined;
-  const title = resolvedName ?? chat.title;
-  const phone =
-    info?.phoneNumber != null
-      ? String(info.phoneNumber)
-      : chat.phone;
-  const avatarUrl =
-    (info ? resolveAvatar(info.avatar, info.base64Avatar) : null) ??
-    chat.avatarUrl ??
-    undefined;
+  const avatarQuery = useChatAvatarQuery(chat.chatId, isVisible);
+  const avatarUrl = avatarQuery.data ?? chat.avatarUrl ?? undefined;
+  const showSkeleton = isVisible && avatarQuery.isPending;
 
   const subtitle = chat.lastMessagePreview
     ? chat.lastMessagePreview
-    : phone
-      ? formatPhone(phone)
+    : chat.phone
+      ? formatPhone(chat.phone)
       : isGroup
         ? 'Группа'
         : chat.chatId;
 
   useEffect(() => {
-    if (!isActive || !info) return;
+    if (!isActive || !avatarUrl || avatarUrl === chat.avatarUrl) return;
 
-    updateChat({
-      ...chat,
-      title,
-      phone,
-      avatarUrl: avatarUrl ?? null,
-      hasName: Boolean(resolvedName) || Boolean(chat.hasName),
-    });
-  }, [isActive, info, title, phone, avatarUrl, resolvedName, chat, updateChat]);
+    updateChat({ ...chat, avatarUrl });
+  }, [isActive, avatarUrl, chat, updateChat]);
 
   return (
     <button
       ref={buttonRef}
       type="button"
-      onClick={() => setActiveChat(chat.id)}
+      onClick={() => onSelect(chat.id)}
       className={`w-full text-left px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50 hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors ${
         isActive
           ? 'bg-ga-primary/10 border-l-2 border-ga-primary'
@@ -106,22 +80,19 @@ export function ChatListItem({ chat }: ChatListItemProps) {
       }`}
     >
       <div className="flex items-center gap-4">
-        {isResolving ? (
+        {showSkeleton ? (
           <Skeleton width="36" height="36" className="rounded-full shrink-0" />
         ) : (
-          <Avatar src={avatarUrl} name={title} size="md" />
+          <Avatar src={avatarUrl} name={chat.title} size="md" />
         )}
 
         <div className="flex-1 min-w-0">
-          {showTextSkeleton ? (
-            <>
-              <Skeleton width="60%" height="1.1em" />
-              <Skeleton width="85%" height="0.9em" className="mt-1.5" />
-            </>
+          {showSkeleton ? (
+            <ChatListItemSkeleton />
           ) : (
             <>
               <div className="text-base font-medium text-ga-text dark:text-ga-darkText truncate">
-                {title}
+                {chat.title}
               </div>
               <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate mt-0.5">
                 {subtitle}
@@ -139,3 +110,5 @@ export function ChatListItem({ chat }: ChatListItemProps) {
     </button>
   );
 }
+
+export const ChatListItem = memo(ChatListItemComponent);

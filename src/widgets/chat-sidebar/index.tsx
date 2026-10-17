@@ -1,28 +1,35 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useChatsQuery } from '@/entities/chat/api/useChatsQuery';
-import { useCredentialsStore } from '@/entities/credentials/model/credentials';
-import { summaryToChat } from '@/entities/chat/lib/chat';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useChatsStore } from '@/entities/chat/model/chat';
 import { Button } from '@/shared/ui/Button';
 import { ChatListItem, ChatListItemSkeleton } from '@/widgets/chat-list';
+import type { Chat } from '@/entities/chat/model/chat';
 
 const INITIAL_VISIBLE = 20;
 const VISIBLE_STEP = 20;
 const PLACEHOLDER_ROWS = 3;
 
-export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
+interface ChatSidebarProps {
+  chats: Chat[];
+  isLoading: boolean;
+  isError: boolean;
+  quotaExceeded: boolean;
+  onRetry: () => void;
+  onNewChat: () => void;
+}
+
+function ChatSidebarComponent({
+  chats,
+  isLoading,
+  isError,
+  quotaExceeded,
+  onRetry,
+  onNewChat,
+}: ChatSidebarProps) {
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
-  const credentials = useCredentialsStore((state) => state.credentials);
-  const chatsQuery = useChatsQuery();
+  const activeChatId = useChatsStore((state) => state.activeChatId);
+  const setActiveChat = useChatsStore((state) => state.setActiveChat);
   const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const chats = useMemo(
-    () =>
-      (chatsQuery.data ?? []).map((summary) =>
-        summaryToChat(summary, credentials?.messenger ?? 'whatsapp'),
-      ),
-    [chatsQuery.data, credentials?.messenger],
-  );
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -39,9 +46,13 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
     setVisibleCount(INITIAL_VISIBLE);
   }, [search]);
 
+  const handleSelect = useCallback(
+    (chatId: string) => setActiveChat(chatId),
+    [setActiveChat],
+  );
+
   const hasMore = visibleCount < filtered.length;
   const visibleChats = filtered.slice(0, visibleCount);
-  const isInitialLoading = chatsQuery.isLoading;
 
   useEffect(() => {
     const element = sentinelRef.current;
@@ -78,18 +89,22 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {isInitialLoading ? (
+        {isLoading ? (
           Array.from({ length: 8 }).map((_, index) => (
             <ChatListItemSkeleton key={index} />
           ))
-        ) : chatsQuery.isError ? (
+        ) : isError ? (
           <div className="p-6 flex flex-col items-center gap-4">
             <p className="text-base text-center text-ga-text dark:text-ga-darkText-secondary">
-              Не удалось загрузить чаты.
+              {quotaExceeded
+                ? 'Достигнут лимит тарифа «Разработчик». Повысьте тариф в личном кабинете GREEN-API.'
+                : 'Не удалось загрузить чаты.'}
             </p>
-            <Button variant="outline" size="sm" onClick={() => chatsQuery.refetch()}>
-              Повторить
-            </Button>
+            {quotaExceeded ? null : (
+              <Button variant="outline" size="sm" onClick={onRetry}>
+                Повторить
+              </Button>
+            )}
           </div>
         ) : filtered.length === 0 ? (
           <p className="p-6 text-base text-center text-ga-text dark:text-ga-darkText-secondary">
@@ -100,7 +115,12 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
         ) : (
           <>
             {visibleChats.map((chat) => (
-              <ChatListItem key={chat.chatId} chat={chat} />
+              <ChatListItem
+                key={chat.chatId}
+                chat={chat}
+                isActive={chat.id === activeChatId}
+                onSelect={handleSelect}
+              />
             ))}
 
             {hasMore ? (
@@ -116,3 +136,5 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
     </aside>
   );
 }
+
+export const ChatSidebar = memo(ChatSidebarComponent);
