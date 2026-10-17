@@ -5,7 +5,6 @@ import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getContactInfo } from '@/shared/api/repositories/contacts.repository';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
-import { Preloader } from '@/shared/ui/Preloader';
 import type { Contact } from '@/shared/api/green-api/types';
 import { useNavigate } from 'react-router-dom';
 

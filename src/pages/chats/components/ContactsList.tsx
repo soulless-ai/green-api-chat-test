@@ -5,7 +5,7 @@ import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getContacts } from '@/shared/api/repositories/contacts.repository';
 import { ContactItem } from './ContactItem';
 import { Button } from '@/shared/ui/Button';
-import { Preloader } from '@/shared/ui/Preloader';
+import { Skeleton } from '@/shared/ui/Skeleton';
 
 const PAGE_SIZE = 50;
 
@@ -32,8 +32,9 @@ export function ContactsList() {
   if (contactsQuery.isFetching && !contactsQuery.data) {
     return (
       <div className="flex flex-col h-full items-center justify-center pt-20">
-        <Preloader size="lg" />
-        <p className="mt-3 text-base text-ga-dark-text-secondary">Загрузка контактов…</p>
+        <Skeleton width="48" height="48" className="rounded-full" />
+        <Skeleton width="200" height="1em" className="mt-3" />
+        <p className="mt-1 text-base text-ga-dark-text-secondary">Загрузка контактов…</p>
       </div>
     );
   }
@@ -77,7 +78,7 @@ export function ContactsList() {
               onClick={() => contactsQuery.fetchNextPage()}
               disabled={isFetchingMore}
             >
-              {isFetchingMore ? <Preloader size="sm" className="mr-2" /> : null}
+              {isFetchingMore ? <Skeleton width="16" height="16" className="mr-2 rounded-full" /> : null}
               Загрузить еще
             </Button>
           </div>
