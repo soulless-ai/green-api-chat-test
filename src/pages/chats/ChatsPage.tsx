@@ -85,28 +85,34 @@ export function ChatsPage() {
   }, [accountQuery.data, credentials?.avatarUrl, setAvatarUrl, setCredentials]);
 
   useEffect(() => {
-    if (!chatsQuery.data) return;
-    const existingByChatId = new Map(chats.map((item) => [item.chatId, item]));
-    chatsQuery.data.forEach((summary) => {
-      if (!summary.chatId) return;
-      const existing = existingByChatId.get(summary.chatId);
+    if (!chatsQuery.data || !credentials) return;
+
+    for (const summary of chatsQuery.data) {
+      if (!summary.chatId) continue;
+
       const phoneNumber = summary.phoneNumber ?? 0;
+
       const chat: Chat = {
         id: summary.chatId,
         chatId: summary.chatId,
         title:
-          existing?.title ??
-          summary.name ??
+          summary.name ||
           (phoneNumber > 0 ? String(phoneNumber) : summary.chatId),
-        phone: existing?.phone ?? (phoneNumber > 0 ? String(phoneNumber) : undefined),
-        messenger: credentials?.messenger ?? 'whatsapp',
-        createdAt: existing?.createdAt ?? Date.now(),
-        unreadCount: summary.unreadCount ?? existing?.unreadCount,
-        avatarUrl: existing?.avatarUrl ?? null,
+        phone: phoneNumber > 0 ? String(phoneNumber) : undefined,
+        messenger: credentials.messenger ?? 'whatsapp',
+        createdAt: Date.now(),
+        unreadCount: summary.unreadCount,
+        avatarUrl: null,
       };
+
       updateChat(chat);
-    });
-  }, [chatsQuery.data, chats, credentials?.messenger, updateChat]);
+    }
+  }, [
+    chatsQuery.data,
+    credentials?.messenger,
+    credentials?.idInstance,
+    updateChat,
+  ]);
 
   const statusLabelMap: Record<string, string> = {
     authorized: 'Авторизован',

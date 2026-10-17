@@ -49,11 +49,33 @@ export const useChatsStore = create<ChatsState>()(
           chats: state.chats.some((item) => item.chatId === chat.chatId) ? state.chats : [chat, ...state.chats],
         })),
       updateChat: (chat) =>
-        set((state) => ({
-          chats: state.chats.some((item) => item.chatId === chat.chatId)
-            ? state.chats.map((item) => (item.chatId === chat.chatId ? chat : item))
-            : [chat, ...state.chats],
-        })),
+        set((state) => {
+          const index = state.chats.findIndex(
+            (item) =>
+              item.chatId === chat.chatId &&
+              item.messenger === chat.messenger,
+          );
+
+          if (index === -1) {
+            return { chats: [chat, ...state.chats] };
+          }
+
+          const chats = [...state.chats];
+
+          chats[index] = {
+            ...chats[index],
+            ...chat,
+            lastMessagePreview:
+              chat.lastMessagePreview ?? chats[index].lastMessagePreview,
+            lastMessageAt:
+              chat.lastMessageAt ?? chats[index].lastMessageAt,
+            avatarUrl: chat.avatarUrl ?? chats[index].avatarUrl,
+            unreadCount: chat.unreadCount ?? chats[index].unreadCount,
+            phone: chat.phone ?? chats[index].phone,
+          };
+
+          return { chats };
+        }),
       removeChat: (id) =>
         set((state) => ({
           chats: state.chats.filter((item) => item.id !== id),

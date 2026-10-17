@@ -10,8 +10,6 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
     (chat.title + ' ' + (chat.lastMessagePreview ?? '')).toLowerCase().includes(search.toLowerCase()),
   );
 
-  console.log('chats', chats);
-
   return (
     <aside className="w-full md:w-80 bg-white dark:bg-ga-darkPanel border-r border-ga-border dark:border-ga-darkBorder flex flex-col">
       <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder space-y-3">
