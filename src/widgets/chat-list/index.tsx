@@ -30,13 +30,13 @@ export function ChatListItem({ chat }: ChatListItemProps) {
   return (
     <button
       onClick={() => setActiveChat(chat.id)}
-      className={`w-full text-left px-5 py-4 border-b border-ga-dark-border/50 hover:bg-ga-dark-border/50 transition-colors ${activeChatId === chat.id ? 'bg-ga-primary-transparent border-l-2 border-ga-primary' : ''}`}
+      className={`w-full text-left px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50 hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors ${activeChatId === chat.id ? 'bg-ga-primary-transparent border-l-2 border-ga-primary' : ''}`}
     >
       <div className="flex items-center gap-4">
         <Avatar src={avatarQuery.data ?? chat.avatarUrl ?? undefined} name={chat.title} size="md" />
         <div className="flex-1 min-w-0">
-          <div className="text-base font-medium text-ga-dark-text truncate">{chat.title}</div>
-          <div className="text-sm text-ga-dark-text-secondary truncate mt-0.5">
+          <div className="text-base font-medium text-ga-text dark:text-ga-darkText truncate">{chat.title}</div>
+          <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate mt-0.5">
             {chat.lastMessagePreview ?? chat.phone ?? chat.chatId}
           </div>
         </div>

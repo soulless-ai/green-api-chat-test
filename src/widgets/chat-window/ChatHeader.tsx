@@ -14,12 +14,12 @@ export function ChatHeader({ chatId, onBack }: ChatHeaderProps) {
   if (!chat) return null;
 
   return (
-    <header className="bg-white dark:bg-ga-dark-panel border-b border-ga-dark-border px-5 py-4">
+    <header className="bg-white dark:bg-ga-darkPanel border-b border-ga-border dark:border-ga-darkBorder px-5 py-4">
       <div className="flex items-center gap-4">
         {isMobile && onBack && (
           <button
             onClick={onBack}
-            className="p-2 text-ga-dark-text hover:bg-ga-dark-border/50 rounded-lg transition-colors"
+            className="p-2 text-ga-text dark:text-ga-darkText hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 rounded-lg transition-colors"
             aria-label="Назад к списку чатов"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,8 +29,8 @@ export function ChatHeader({ chatId, onBack }: ChatHeaderProps) {
         )}
         <Avatar src={chat.avatarUrl ?? undefined} name={chat.title} size="lg" />
         <div className="flex-1 min-w-0">
-          <div className="text-lg font-bold text-ga-dark-text truncate">{chat.title}</div>
-          <div className="text-sm text-ga-dark-text-secondary truncate">
+          <div className="text-lg font-bold text-ga-text dark:text-ga-darkText truncate">{chat.title}</div>
+          <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate">
             {chat.phone ?? chat.chatId}
           </div>
         </div>

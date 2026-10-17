@@ -22,7 +22,7 @@ export function EmojiPicker({ onEmojiSelect, open, onClose }: EmojiPickerProps) 
 
   return (
     <div
-      className="fixed bottom-[88px] right-4 w-64 bg-white dark:bg-ga-dark-panel border border-ga-dark-border rounded-xl shadow-lg p-2 z-40 flex flex-col gap-2"
+      className="fixed bottom-[88px] right-4 w-64 bg-white dark:bg-ga-darkPanel border border-ga-border dark:border-ga-darkBorder rounded-xl shadow-lg p-2 z-40 flex flex-col gap-2"
       role="dialog"
       aria-modal="true"
       aria-label="Выбор смайлика"
@@ -35,7 +35,7 @@ export function EmojiPicker({ onEmojiSelect, open, onClose }: EmojiPickerProps) 
               onEmojiSelect(emoji);
               onClose();
             }}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-lg hover:bg-ga-dark-border/50 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-lg hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors"
             aria-label={`Смайлик ${emoji}`}
           >
             {emoji}

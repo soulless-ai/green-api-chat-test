@@ -21,7 +21,7 @@ export function Skeleton({ className, width = '100%', height = '1em', delay = 0 
 
   return (
     <div
-      className={`animate-pulse rounded-md bg-ga-dark-border/50 dark:bg-ga-dark-border/30 ${className ?? ''}`}
+      className={`animate-pulse rounded-md bg-ga-border/50 dark:bg-ga-darkBorder/50 dark:bg-ga-dark-border/30 ${className ?? ''}`}
       style={{ width: typeof width === 'number' ? `${width}px` : width, height: typeof height === 'number' ? `${height}px` : height }}
     />
   );

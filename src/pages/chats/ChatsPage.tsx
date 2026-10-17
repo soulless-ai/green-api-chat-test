@@ -125,7 +125,7 @@ export function ChatsPage() {
 
   const renderChatListSkeleton = () => (
     <div className="flex flex-col h-full">
-      <div className="p-5 border-b border-ga-dark-border space-y-3">
+      <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-2">
             <Skeleton width="60" height="1.5em" />
@@ -142,7 +142,7 @@ export function ChatsPage() {
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-ga-dark-border/50">
+          <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50">
             <Skeleton width="36" height="36" className="rounded-full" />
             <div className="flex-1 min-w-0">
               <Skeleton width="120" height="1.25em" />
@@ -180,12 +180,12 @@ export function ChatsPage() {
                 onClick={toggleSidebar}
                 aria-hidden="true"
               />
-              <div className={`fixed inset-y-0 right-0 z-60 w-full max-w-md bg-white dark:bg-ga-dark-panel border-l border-ga-dark-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-ga-dark-text">Навигация</h2>
+              <div className={`fixed inset-y-0 right-0 z-60 w-full max-w-md bg-white dark:bg-ga-darkPanel border-l border-ga-border dark:border-ga-darkBorder shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Навигация</h2>
                   <button
                     onClick={toggleSidebar}
-                    className="p-2.5 text-ga-dark-text hover:bg-ga-dark-border rounded-lg transition-colors"
+                    className="p-2.5 text-ga-text dark:text-ga-darkText hover:bg-ga-dark-border rounded-lg transition-colors"
                     aria-label="Закрыть навигацию"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +195,7 @@ export function ChatsPage() {
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   <div className="p-4">
-                    <h3 className="text-sm font-semibold text-ga-dark-text-secondary uppercase tracking-wider mb-3">Чаты</h3>
+                    <h3 className="text-sm font-semibold text-ga-text dark:text-ga-darkText-secondary uppercase tracking-wider mb-3">Чаты</h3>
                     {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
                   </div>
                   <div className="px-4 pb-4">

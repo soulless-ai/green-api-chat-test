@@ -44,10 +44,10 @@ export function NewChatDialog({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true">
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-ga-dark-panel rounded-2xl p-6 w-full max-w-sm space-y-4">
-        <h3 className="text-lg font-semibold text-ga-dark-text">Новый чат</h3>
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-ga-darkPanel rounded-2xl p-6 w-full max-w-sm space-y-4">
+        <h3 className="text-lg font-semibold text-ga-text dark:text-ga-darkText">Новый чат</h3>
         <div>
-          <label className="block text-sm font-medium mb-1 text-ga-dark-text" htmlFor="new-chat-phone">
+          <label className="block text-sm font-medium mb-1 text-ga-text dark:text-ga-darkText" htmlFor="new-chat-phone">
             Номер телефона
           </label>
           <input
@@ -67,22 +67,22 @@ export function NewChatDialog({ open, onClose }: Props) {
             inputMode="numeric"
             autoComplete="tel-national"
             placeholder={formatPhone('79991234567')}
-            className="w-full border border-ga-dark-border rounded-lg px-3 py-2 text-ga-dark-text bg-white dark:bg-[#1a1a1a] focus:ring-2 focus:ring-ga-primary"
+            className="w-full border border-ga-border dark:border-ga-darkBorder rounded-lg px-3 py-2 text-ga-text dark:text-ga-darkText bg-white dark:bg-[#1a1a1a] focus:ring-2 focus:ring-ga-primary"
           />
           {errors.phone ? (
-            <p className="text-sm text-ga-dark-danger mt-1">{errors.phone.message}</p>
+            <p className="text-sm text-ga-danger dark:text-ga-darkDanger mt-1">{errors.phone.message}</p>
           ) : null}
-          <p className="text-xs text-ga-dark-text-secondary mt-1">
+          <p className="text-xs text-ga-text dark:text-ga-darkText-secondary mt-1">
             {`${profile.phoneLengths.join(' или ')} цифр, без лишних символов. Например: ${formatPhone('79991234567')}.`}
           </p>
         </div>
         {mutation.isError ? (
-          <p className="text-sm text-ga-dark-danger">
+          <p className="text-sm text-ga-danger dark:text-ga-darkDanger">
             {mutation.error instanceof Error ? mutation.error.message : 'Не удалось проверить номер'}
           </p>
         ) : null}
         {mutation.data && !mutation.data.exist ? (
-          <p className="text-sm text-ga-dark-danger">Аккаунт не найден в мессенджере</p>
+          <p className="text-sm text-ga-danger dark:text-ga-darkDanger">Аккаунт не найден в мессенджере</p>
         ) : null}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="md" type="button" onClick={onClose}>

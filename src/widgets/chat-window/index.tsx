@@ -228,7 +228,7 @@ export function ChatWindow() {
   }
 
   return (
-    <section className="flex-1 flex flex-col bg-ga-light-chatBg dark:bg-ga-dark-chatBg">
+    <section className="flex-1 flex flex-col bg-ga-light-chatBg dark:bg-ga-darkChatBg">
       <ChatHeader chatId={activeChatId} onBack={isMobile ? toggleSidebar : undefined} />
       {typingUsers.length > 0 && (
         <div className="mt-2 text-sm font-medium text-ga-dark-primary italic px-5">
@@ -253,7 +253,7 @@ export function ChatWindow() {
       {emojiPickerOpen && (
         <div className="flex justify-end pr-2">
           <div
-            className="fixed bottom-[110px] right-4 w-64 bg-white dark:bg-[#1f2223] border border-ga-dark-border rounded-xl shadow-lg p-2 z-40 flex flex-col gap-2"
+            className="fixed bottom-[110px] right-4 w-64 bg-white dark:bg-[#1f2223] border border-ga-border dark:border-ga-darkBorder rounded-xl shadow-lg p-2 z-40 flex flex-col gap-2"
             role="dialog"
             aria-modal="true"
             aria-label="Выбор смайлика"
@@ -266,7 +266,7 @@ export function ChatWindow() {
                     setDraft((prev) => prev + emoji);
                     setEmojiPickerOpen(false);
                   }}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-lg hover:bg-ga-dark-border/50 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-lg hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors"
                   aria-label={`Смайлик ${emoji}`}
                 >
                   {emoji}

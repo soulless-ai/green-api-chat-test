@@ -11,10 +11,10 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
   );
 
   return (
-    <aside className="w-full md:w-80 bg-white dark:bg-ga-dark-panel border-r border-ga-dark-border flex flex-col">
-      <div className="p-5 border-b border-ga-dark-border space-y-3">
+    <aside className="w-full md:w-80 bg-white dark:bg-ga-darkPanel border-r border-ga-border dark:border-ga-darkBorder flex flex-col">
+      <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-ga-dark-text">Чаты</h2>
+          <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Чаты</h2>
           <Button variant="primary" size="sm" onClick={onNewChat}>
             Новый чат
           </Button>
@@ -23,12 +23,12 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Поиск по чатам"
-          className="w-full border border-ga-dark-border rounded-xl px-4 py-2.5 text-base text-ga-dark-text bg-white dark:bg-[#1a1a1a] placeholder:text-ga-dark-text-secondary focus:ring-2 focus:ring-ga-primary outline-none"
+          className="w-full border border-ga-border dark:border-ga-darkBorder rounded-xl px-4 py-2.5 text-base text-ga-text dark:text-ga-darkText bg-white dark:bg-[#1a1a1a] placeholder:text-ga-text dark:text-ga-darkText-secondary focus:ring-2 focus:ring-ga-primary outline-none"
         />
       </div>
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
-          <p className="p-6 text-base text-center text-ga-dark-text-secondary">Создайте первый чат по номеру телефона.</p>
+          <p className="p-6 text-base text-center text-ga-text dark:text-ga-darkText-secondary">Создайте первый чат по номеру телефона.</p>
         ) : (
           filtered.map((chat) => (
             <ChatListItem key={chat.chatId} chat={chat} />

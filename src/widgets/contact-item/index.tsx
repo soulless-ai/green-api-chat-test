@@ -60,7 +60,7 @@ export function ContactItem({ contact }: ContactItemProps) {
   };
 
   return (
-    <div className="flex items-center gap-4 px-5 py-4 border-b border-ga-dark-border/50 hover:bg-ga-dark-border/50 transition-colors cursor-pointer group"
+    <div className="flex items-center gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50 hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors cursor-pointer group"
       onClick={handleClick}>
       {avatarQuery.isLoading ? (
         <Skeleton width="36" height="36" className="rounded-full" />
@@ -72,15 +72,15 @@ export function ContactItem({ contact }: ContactItemProps) {
         />
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-base font-medium text-ga-dark-text truncate">
+        <div className="text-base font-medium text-ga-text dark:text-ga-darkText truncate">
           {contact.name ?? `+${phoneNumber}`}
         </div>
         {canWrite ? (
-          <div className="text-sm text-ga-dark-text-secondary truncate">
+          <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate">
             +{phoneNumber}
           </div>
         ) : (
-          <div className="text-sm text-ga-dark-text-secondary truncate">Без номера телефона</div>
+          <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate">Без номера телефона</div>
         )}
       </div>
       {canWrite ? (

@@ -10,11 +10,11 @@ const VARIANT_CLASSES: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
     'bg-ga-primary text-white hover:bg-brand-600 active:bg-brand-700 disabled:opacity-60 disabled:pointer-events-none',
   danger:
-    'bg-ga-dark-danger text-white hover:bg-d1242f/90 active:bg-d1242f disabled:opacity-60 disabled:pointer-events-none',
+    'bg-ga-danger dark:bg-ga-darkDanger text-white hover:bg-d1242f/90 active:bg-d1242f disabled:opacity-60 disabled:pointer-events-none',
   ghost:
-    'bg-transparent text-ga-dark-text hover:bg-ga-dark-border/50 active:bg-ga-dark-border disabled:opacity-60 disabled:pointer-events-none',
+    'bg-transparent text-ga-text dark:text-ga-darkText hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 active:bg-ga-border dark:active:bg-ga-darkBorder disabled:opacity-60 disabled:pointer-events-none',
   outline:
-    'border border-ga-dark-border text-ga-dark-text bg-transparent hover:bg-ga-dark-border/50 disabled:opacity-60 disabled:pointer-events-none',
+    'border border-ga-border dark:border-ga-darkBorder text-ga-text dark:text-ga-darkText bg-transparent hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 disabled:opacity-60 disabled:pointer-events-none',
 };
 
 const SIZE_CLASSES: Record<NonNullable<ButtonProps['size']>, string> = {

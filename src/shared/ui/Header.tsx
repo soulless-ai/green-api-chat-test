@@ -22,22 +22,22 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const statusColors: Record<string, { text: string; bg: string }> = {
-    authorized: { text: 'text-ga-dark-authorized', bg: 'bg-ga-dark-authorized-bg' },
-    notAuthorized: { text: 'text-ga-dark-danger', bg: 'bg-ga-dark-not-authorized-bg' },
-    starting: { text: 'text-ga-dark-starting', bg: 'bg-ga-dark-starting' },
-    blocked: { text: 'text-ga-dark-blocked', bg: 'bg-ga-dark-blocked' },
-    sleepMode: { text: 'text-ga-dark-warning', bg: 'bg-ga-dark-warning' },
-    unknown: { text: 'text-ga-dark-text-secondary', bg: 'bg-ga-dark-border' },
+    authorized: { text: 'text-ga-primary dark:text-ga-darkPrimary', bg: 'bg-ga-authorizedBg dark:bg-ga-darkAuthorizedBg' },
+    notAuthorized: { text: 'text-ga-danger dark:text-ga-darkDanger', bg: 'bg-ga-notAuthorizedBg dark:bg-ga-darkNotAuthorizedBg' },
+    starting: { text: 'text-ga-starting dark:text-ga-darkStarting', bg: 'bg-ga-starting dark:bg-ga-darkStarting' },
+    blocked: { text: 'text-ga-blocked dark:text-ga-darkBlocked', bg: 'bg-ga-blocked dark:bg-ga-darkBlocked' },
+    sleepMode: { text: 'text-ga-warning dark:text-ga-darkWarning', bg: 'bg-ga-warning dark:bg-ga-darkWarning' },
+    unknown: { text: 'text-ga-text dark:text-ga-darkText-secondary', bg: 'bg-ga-dark-border' },
   };
 
-  const statusColor = statusColors[status] ?? statusColors.unknown ?? { text: 'text-ga-dark-text-secondary', bg: 'bg-ga-dark-border' };
+  const statusColor = statusColors[status] ?? statusColors.unknown ?? { text: 'text-ga-text dark:text-ga-darkText-secondary', bg: 'bg-ga-dark-border' };
 
   return (
-    <nav className="bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-b border-ga-dark-border px-4 py-3.5 flex items-center justify-between z-40 sticky top-0" aria-label="Основная навигация">
+    <nav className="bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-b border-ga-border dark:border-ga-darkBorder px-4 py-3.5 flex items-center justify-between z-40 sticky top-0" aria-label="Основная навигация">
       <div className="flex items-center gap-3 shrink-0">
         <button
           onClick={onToggleSidebar}
-          className="p-2.5 text-ga-dark-text hover:bg-ga-dark-border/50 rounded-lg transition-colors"
+          className="p-2.5 text-ga-text dark:text-ga-darkText hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 rounded-lg transition-colors"
           aria-label="Открыть навигацию"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,7 +48,7 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
           {isMobile ? (
             <img src="/assets/green-api.svg" alt="GREEN-API" className="h-8 w-auto" />
           ) : null}
-          <span className="text-lg font-bold tracking-tight text-ga-dark-text select-none">
+          <span className="text-lg font-bold tracking-tight text-ga-text dark:text-ga-darkText select-none">
             GREEN-API Chat
           </span>
         </div>
@@ -63,7 +63,7 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
         {credentials ? (
           <div className="hidden md:flex flex-col items-end">
             <div className="text-right">
-              <div className="text-sm font-medium text-ga-dark-text">{credentials.idInstance}</div>
+              <div className="text-sm font-medium text-ga-text dark:text-ga-darkText">{credentials.idInstance}</div>
               <Avatar
                 src={credentials.avatarUrl ?? undefined}
                 name={credentials.idInstance}

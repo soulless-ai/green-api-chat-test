@@ -36,7 +36,7 @@ export function MessageList({ messages, isLoading, onDelete }: MessageListProps)
     return (
       <div className="flex flex-col gap-4 py-10">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex justify-end gap-4 px-5 py-4 border-b border-ga-dark-border/50">
+          <div key={i} className="flex justify-end gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50">
             <Skeleton width="60" height="60" className="rounded-full" />
             <div className="flex-1 min-w-0">
               <Skeleton width="100" height="1.25em" />
@@ -54,7 +54,7 @@ export function MessageList({ messages, isLoading, onDelete }: MessageListProps)
         <React.Fragment key={`${message.dateLabel ?? message.id}-${index}`}>
           {message.dateLabel ? (
             <div key="date" className="my-3 flex items-center text-center">
-              <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-dark-text-secondary bg-white dark:bg-ga-dark-panel border border-ga-dark-border">
+              <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-text dark:text-ga-darkText-secondary bg-white dark:bg-ga-darkPanel border border-ga-border dark:border-ga-darkBorder">
                 {message.dateLabel}
               </span>
             </div>
