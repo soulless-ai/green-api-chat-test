@@ -23,7 +23,7 @@ export function ChatSidebar({ onNewChat }: { onNewChat: () => void }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Поиск по чатам"
-          className="w-full border border-ga-border dark:border-ga-darkBorder rounded-xl px-4 py-2.5 text-base text-ga-text dark:text-ga-darkText bg-white dark:bg-[#1a1a1a] placeholder:text-ga-text dark:text-ga-darkText-secondary focus:ring-2 focus:ring-ga-primary outline-none"
+          className="w-full border border-ga-border dark:border-ga-darkBorder rounded-xl px-4 py-2.5 text-base text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput placeholder:text-ga-text dark:text-ga-darkText-secondary focus:ring-2 focus:ring-ga-primary outline-none"
         />
       </div>
       <div className="flex-1 overflow-y-auto">

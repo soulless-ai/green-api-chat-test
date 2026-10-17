@@ -67,7 +67,7 @@ export function NewChatDialog({ open, onClose }: Props) {
             inputMode="numeric"
             autoComplete="tel-national"
             placeholder={formatPhone('79991234567')}
-            className="w-full border border-ga-border dark:border-ga-darkBorder rounded-lg px-3 py-2 text-ga-text dark:text-ga-darkText bg-white dark:bg-[#1a1a1a] focus:ring-2 focus:ring-ga-primary"
+            className="w-full border border-ga-border dark:border-ga-darkBorder rounded-lg px-3 py-2 text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput focus:ring-2 focus:ring-ga-primary"
           />
           {errors.phone ? (
             <p className="text-sm text-ga-danger dark:text-ga-darkDanger mt-1">{errors.phone.message}</p>

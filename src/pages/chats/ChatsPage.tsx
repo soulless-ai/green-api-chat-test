@@ -221,7 +221,7 @@ export function ChatsPage() {
           )
         ) : (
           <>
-            <div className="hidden md:flex w-80 shrink-0 flex-col bg-white dark:bg-[#1f2223]">
+            <div className="hidden md:flex w-80 shrink-0 flex-col bg-white dark:bg-ga-darkPanel">
               {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
             </div>
             <ChatWindow />

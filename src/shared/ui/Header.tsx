@@ -6,6 +6,7 @@ import { Avatar } from '@/shared/ui/Avatar';
 import { MobileDrawer } from '@/shared/ui/MobileDrawer';
 import { Button } from '@/shared/ui/Button';
 
+
 interface HeaderProps {
   onToggleSidebar: () => void;
   onLogout: () => void;
@@ -33,7 +34,7 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
   const statusColor = statusColors[status] ?? statusColors.unknown ?? { text: 'text-ga-text dark:text-ga-darkText-secondary', bg: 'bg-ga-dark-border' };
 
   return (
-    <nav className="bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-b border-ga-border dark:border-ga-darkBorder px-4 py-3.5 flex items-center justify-between z-40 sticky top-0" aria-label="Основная навигация">
+    <nav className="bg-white/95 dark:bg-ga-darkBg/95 backdrop-blur-md border-b border-ga-border dark:border-ga-darkBorder px-4 py-3.5 flex items-center justify-between z-40 sticky top-0" aria-label="Основная навигация">
       <div className="flex items-center gap-3 shrink-0">
         <button
           onClick={onToggleSidebar}
@@ -71,6 +72,24 @@ export function Header({ onToggleSidebar, onLogout, onThemeToggle, status, statu
                 className="mt-1 cursor-pointer"
               />
             </div>
+          </div>
+        ) : null}
+
+        {isMobile ? (
+          <div className="relative z-50">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Навигация"
+              aria-expanded={drawerOpen}
+              className="z-50"
+            >
+              <svg className="w-6 h-6 z-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </Button>
+            <MobileDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onToggleSidebar={onToggleSidebar} />
           </div>
         ) : null}
 
