@@ -12,6 +12,24 @@ interface MessageComposerProps {
   setDraft: (text: string) => void;
 }
 
+function SendIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path d="M22 2 11 13" />
+      <path d="M22 2 15 22l-4-9-9-4Z" />
+    </svg>
+  );
+}
+
 export function MessageComposer({
   onSend,
   isSending,
@@ -71,7 +89,7 @@ export function MessageComposer({
   return (
     <div
       ref={composerRef}
-      className="relative bg-white dark:bg-ga-darkPanel border-t border-ga-border dark:border-ga-darkBorder p-4"
+      className="relative border-t border-ga-border bg-ga-bg p-3 dark:border-ga-darkBorder dark:bg-ga-darkPanel sm:p-4"
     >
       <EmojiPicker
         open={emojiOpen}
@@ -79,7 +97,25 @@ export function MessageComposer({
         onClose={() => setEmojiOpen(false)}
       />
 
-      <div className="flex gap-2">
+      <div className="flex items-end gap-1.5 sm:gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setEmojiOpen((open) => !open)}
+          aria-label="Смайлики"
+          className="shrink-0"
+        >
+          😊
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleAttach}
+          aria-label="Прикрепить файл"
+          className="shrink-0"
+        >
+          📎
+        </Button>
         <textarea
           ref={textareaRef}
           value={draft}
@@ -87,35 +123,20 @@ export function MessageComposer({
           onKeyDown={handleKeyDown}
           rows={1}
           placeholder="Напишите сообщение…"
-          className="flex-1 border border-ga-border dark:border-ga-darkBorder rounded-xl px-4 py-3 resize-none text-base text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput focus:ring-2 focus:ring-ga-primary outline-none"
+          className="min-w-0 flex-1 resize-none rounded-xl border border-ga-border bg-ga-bg px-3 py-2.5 text-base text-ga-text outline-none focus:ring-2 focus:ring-ga-primary dark:border-ga-darkBorder dark:bg-ga-darkInput dark:text-ga-darkText sm:px-4 sm:py-3"
         />
-        <div className="flex gap-1 items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setEmojiOpen((open) => !open)}
-            aria-label="Смайлики"
-          >
-            😊
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleAttach}
-            aria-label="Прикрепить файл"
-          >
-            📎
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleSend}
-            disabled={!draft.trim() || isSending}
-            loading={isSending}
-          >
-            Отправить
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleSend}
+          disabled={!draft.trim() || isSending}
+          loading={isSending}
+          className="shrink-0"
+          aria-label="Отправить"
+        >
+          <SendIcon />
+          <span className="ml-1.5 hidden sm:inline">Отправить</span>
+        </Button>
       </div>
     </div>
   );

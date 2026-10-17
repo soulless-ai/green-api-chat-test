@@ -25,11 +25,11 @@ export function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} aria-hidden="true" />
-      <div className="bg-white dark:bg-ga-darkPanel rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <div className="relative z-10 bg-ga-bg dark:bg-ga-darkPanel rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <h3 className="text-lg font-bold text-ga-text dark:text-ga-darkText">{title}</h3>
-        {message && <p className="text-sm text-ga-text dark:text-ga-darkText-secondary mt-2">{message}</p>}
+        {message && <p className="text-sm text-ga-text dark:text-ga-darkTextSecondary mt-2">{message}</p>}
         <div className="flex justify-end gap-2 mt-6">
-          <Button variant="ghost" size="sm" onClick={onCancel}>
+          <Button variant="outline" size="sm" onClick={onCancel}>
             {cancelLabel}
           </Button>
           <Button variant="danger" size="sm" onClick={onConfirm}>

@@ -9,7 +9,7 @@ export function EmptyChat({ chatTitle }: EmptyChatProps) {
   const credentials = useCredentialsStore((state) => state.credentials);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center text-ga-text dark:text-ga-darkText-secondary">
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center bg-ga-chatBg px-6 text-center text-ga-text dark:bg-ga-darkChatBg dark:text-ga-darkTextSecondary">
       <Avatar 
         src={credentials?.avatarUrl ?? undefined}
         name={chatTitle ?? 'Выберите чат'}

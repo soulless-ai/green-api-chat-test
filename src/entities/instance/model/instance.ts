@@ -4,7 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 interface InstanceUiState {
   theme: 'light' | 'dark';
   sidebarOpen: boolean;
-  toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
   setTheme: (theme: 'light' | 'dark') => void;
 }
 
@@ -13,7 +13,7 @@ export const useInstanceUiStore = create<InstanceUiState>()(
     (set) => ({
       theme: 'light',
       sidebarOpen: true,
-      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setTheme: (theme) => {
         set({ theme });
         if (typeof localStorage !== 'undefined') {

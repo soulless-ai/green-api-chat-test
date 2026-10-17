@@ -9,7 +9,6 @@ import { Button } from '@/shared/ui/Button';
 import { MobileDrawer } from '@/shared/ui/MobileDrawer';
 
 interface HeaderProps {
-  onToggleSidebar: () => void;
   onLogout: () => void;
   onThemeToggle: () => void;
   status: string;
@@ -22,7 +21,7 @@ type StatusStyle = {
 };
 
 const DEFAULT_STATUS_STYLE: StatusStyle = {
-  text: 'text-ga-text dark:text-ga-darkText-secondary',
+  text: 'text-ga-text dark:text-ga-darkTextSecondary',
   dot: 'bg-gray-400',
 };
 
@@ -104,7 +103,6 @@ function ThemeIcon({ dark }: { dark: boolean }) {
 }
 
 export function Header({
-  onToggleSidebar,
   onLogout,
   onThemeToggle,
   status,
@@ -119,7 +117,7 @@ export function Header({
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-ga-border bg-white/95 px-3 py-3 backdrop-blur-md dark:border-ga-darkBorder dark:bg-ga-darkBg/95 sm:px-4">
+      <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-3 border-b border-ga-border bg-ga-bg/95 px-3 py-3 backdrop-blur-md dark:border-ga-darkBorder dark:bg-ga-darkBg/95 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <img
             src="/assets/green-api.svg"
@@ -169,7 +167,7 @@ export function Header({
 
           <div className="hidden items-center gap-2 md:flex">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onThemeToggle}
               aria-label={
@@ -193,7 +191,7 @@ export function Header({
 
           {isMobile && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => setDrawerOpen(true)}
               aria-label="Открыть меню"
@@ -209,7 +207,6 @@ export function Header({
         <MobileDrawer
           open={drawerOpen}
           onOpenChange={setDrawerOpen}
-          onToggleSidebar={onToggleSidebar}
           onThemeToggle={onThemeToggle}
           onLogout={onLogout}
         />

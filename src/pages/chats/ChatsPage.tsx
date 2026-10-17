@@ -13,7 +13,6 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
 import { Header } from '@/shared/ui/Header';
-import { Button } from '@/shared/ui/Button';
 import { ChatSidebar } from '@/widgets/chat-sidebar';
 import { ChatWindow } from '@/widgets/chat-window';
 import { NewChatDialog } from '@/widgets/new-chat-dialog';
@@ -28,13 +27,26 @@ export function ChatsPage() {
   const theme = useInstanceUiStore((state) => state.theme);
   const setTheme = useInstanceUiStore((state) => state.setTheme);
   const sidebarOpen = useInstanceUiStore((state) => state.sidebarOpen);
-  const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
+  const setSidebarOpen = useInstanceUiStore((state) => state.setSidebarOpen);
   const setAvatarUrl = useChatsStore((state) => state.setAvatarUrl);
   const setChatsList = useChatsStore((state) => state.setChatsList);
+  const setActiveChat = useChatsStore((state) => state.setActiveChat);
   const setCredentials = useCredentialsStore((state) => state.setCredentials);
   const isMobile = useIsMobile();
   const [newChatOpen, setNewChatOpen] = useState(false);
   const handleNewChat = useCallback(() => setNewChatOpen(true), []);
+
+  const handleSelectChat = useCallback(
+    (chatId: string) => {
+      setActiveChat(chatId);
+      setSidebarOpen(false);
+    },
+    [setActiveChat, setSidebarOpen],
+  );
+
+  const handleOpenContacts = useCallback(() => {
+    navigate('/contacts');
+  }, [navigate]);
 
   const stateQuery = useQuery({
     queryKey: ['instance-state'],
@@ -116,9 +128,8 @@ export function ChatsPage() {
   };
 
   return (
-    <div className="h-dvh flex flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <Header
-        onToggleSidebar={toggleSidebar}
         onLogout={clearCredentials}
         onThemeToggle={handleThemeToggle}
         status={stateQuery.data ?? 'unknown'}
@@ -126,69 +137,30 @@ export function ChatsPage() {
       />
 
       {stateQuery.data !== 'authorized' ? (
-        <div className="bg-ga-notAuthorizedBg border-b border-ga-border px-5 py-3.5 text-base text-ga-text dark:border-ga-darkBorder">
+        <div className="border-b border-ga-border bg-ga-notAuthorizedBg px-5 py-3.5 text-base text-ga-text dark:border-ga-darkBorder dark:bg-ga-darkNotAuthorizedBg dark:text-ga-darkText">
           Инстанс не авторизован. Откройте личный кабинет GREEN-API, авторизуйте номер и очистите webhookUrl.
         </div>
       ) : null}
 
-      <main className="flex-1 min-h-0 flex flex-col md:flex-row">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-ga-bg dark:bg-ga-darkBg md:flex-row">
         {isMobile ? (
           sidebarOpen ? (
-            <>
-              <div
-                className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-                onClick={toggleSidebar}
-                aria-hidden="true"
-              />
-              <div className={`fixed inset-y-0 right-0 z-60 w-full max-w-md bg-white dark:bg-ga-darkPanel border-l border-ga-border dark:border-ga-darkBorder shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Навигация</h2>
-                  <button
-                    onClick={toggleSidebar}
-                    className="p-2.5 text-ga-text dark:text-ga-darkText hover:bg-ga-dark-border rounded-lg transition-colors"
-                    aria-label="Закрыть навигацию"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  <div className="p-4">
-                    <h3 className="text-sm font-semibold text-ga-text dark:text-ga-darkText-secondary uppercase tracking-wider mb-3">Чаты</h3>
-                    <ChatSidebar
-                      chats={chats}
-                      isLoading={chatsQuery.isLoading}
-                      isError={chatsQuery.isError}
-                      quotaExceeded={chatsQuotaExceeded}
-                      onRetry={handleRetryChats}
-                      onNewChat={handleNewChat}
-                    />
-                  </div>
-                  <div className="px-4 pb-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        toggleSidebar();
-                        navigate('/contacts');
-                      }}
-                      className="w-full"
-                    >
-                      Контакты
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </>
+            <ChatSidebar
+              chats={chats}
+              isLoading={chatsQuery.isLoading}
+              isError={chatsQuery.isError}
+              quotaExceeded={chatsQuotaExceeded}
+              onRetry={handleRetryChats}
+              onNewChat={handleNewChat}
+              onOpenContacts={handleOpenContacts}
+              onSelectChat={handleSelectChat}
+            />
           ) : (
-            <div className="flex-1 min-h-0 w-full md:hidden">
-              <ChatWindow />
-            </div>
+            <ChatWindow />
           )
         ) : (
           <>
-            <div className="hidden md:flex w-80 shrink-0 flex-col bg-white dark:bg-ga-darkPanel">
+            <div className="hidden w-80 shrink-0 flex-col md:flex">
               <ChatSidebar
                 chats={chats}
                 isLoading={chatsQuery.isLoading}
@@ -196,6 +168,8 @@ export function ChatsPage() {
                 quotaExceeded={chatsQuotaExceeded}
                 onRetry={handleRetryChats}
                 onNewChat={handleNewChat}
+                onOpenContacts={handleOpenContacts}
+                onSelectChat={handleSelectChat}
               />
             </div>
             <ChatWindow />

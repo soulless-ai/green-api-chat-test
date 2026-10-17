@@ -96,7 +96,7 @@ function ChatListItemComponent({ chat, isActive, onSelect }: ChatListItemProps) 
           <div className="text-base leading-6 font-medium text-ga-text dark:text-ga-darkText truncate">
             {chat.title}
           </div>
-          <div className="text-sm leading-5 text-ga-text dark:text-ga-darkText-secondary truncate mt-0.5">
+          <div className="text-sm leading-5 text-ga-text dark:text-ga-darkTextSecondary truncate mt-0.5">
             {subtitle}
           </div>
         </div>

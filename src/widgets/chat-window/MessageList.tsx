@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import type { Message } from '@/entities/message/model/message';
+import { formatRelativeDate } from '@/shared/lib/date';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { MessageItem } from './MessageItem';
 
@@ -34,8 +35,8 @@ function MessageBubbleSkeleton({
       <div
         className={`w-56 max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
           outgoing
-            ? 'bg-ga-messageCardBg dark:bg-ga-darkMessageCardBg'
-            : 'bg-white dark:bg-ga-darkMessageCardBg border border-ga-border dark:border-ga-darkBorder'
+            ? 'bg-ga-messageCardOutBg dark:bg-ga-darkMessageCardOutBg'
+            : 'bg-ga-messageCardInBg dark:bg-ga-darkMessageCardInBg border border-ga-border dark:border-ga-darkBorder'
         }`}
       >
         {lines.map((width, index) => (
@@ -58,8 +59,9 @@ export function MessageList({ messages, isLoading, onDelete }: MessageListProps)
   const messagesWithDates = useMemo(() => {
     const result: MessageWithDate[] = [];
     let prevDate: string | null = null;
+    const now = new Date();
     sorted.forEach((message) => {
-      const date = new Date(message.timestamp * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+      const date = formatRelativeDate(message.timestamp, now);
       if (date !== prevDate) {
         result.push({ ...message, dateLabel: date } as MessageWithDate);
         prevDate = date;
@@ -90,7 +92,7 @@ export function MessageList({ messages, isLoading, onDelete }: MessageListProps)
         <React.Fragment key={`${message.dateLabel ?? message.id}-${index}`}>
           {message.dateLabel ? (
             <div key="date" className="my-3 flex items-center text-center">
-              <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-text dark:text-ga-darkText-secondary bg-white dark:bg-ga-darkPanel border border-ga-border dark:border-ga-darkBorder">
+              <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-text dark:text-ga-darkTextSecondary bg-ga-bg dark:bg-ga-darkPanel border border-ga-border dark:border-ga-darkBorder">
                 {message.dateLabel}
               </span>
             </div>

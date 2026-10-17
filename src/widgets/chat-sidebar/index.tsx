@@ -15,6 +15,8 @@ interface ChatSidebarProps {
   quotaExceeded: boolean;
   onRetry: () => void;
   onNewChat: () => void;
+  onOpenContacts: () => void;
+  onSelectChat: (chatId: string) => void;
 }
 
 function ChatSidebarComponent({
@@ -24,11 +26,12 @@ function ChatSidebarComponent({
   quotaExceeded,
   onRetry,
   onNewChat,
+  onOpenContacts,
+  onSelectChat,
 }: ChatSidebarProps) {
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const activeChatId = useChatsStore((state) => state.activeChatId);
-  const setActiveChat = useChatsStore((state) => state.setActiveChat);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
@@ -47,8 +50,8 @@ function ChatSidebarComponent({
   }, [search]);
 
   const handleSelect = useCallback(
-    (chatId: string) => setActiveChat(chatId),
-    [setActiveChat],
+    (chatId: string) => onSelectChat(chatId),
+    [onSelectChat],
   );
 
   const hasMore = visibleCount < filtered.length;
@@ -72,30 +75,35 @@ function ChatSidebarComponent({
   }, [hasMore, filtered.length]);
 
   return (
-    <aside className="w-full md:w-80 bg-white dark:bg-ga-darkPanel border-r border-ga-border dark:border-ga-darkBorder flex flex-col">
-      <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder space-y-3">
-        <div className="flex items-center justify-between">
+    <aside className="flex h-full min-h-0 w-full flex-col border-r border-ga-border bg-ga-bg dark:border-ga-darkBorder dark:bg-ga-darkPanel">
+      <div className="space-y-3 border-b border-ga-border p-4 dark:border-ga-darkBorder sm:p-5">
+        <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Чаты</h2>
-          <Button variant="primary" size="sm" onClick={onNewChat}>
-            Новый чат
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button variant="outline" size="sm" onClick={onOpenContacts}>
+              Контакты
+            </Button>
+            <Button variant="primary" size="sm" onClick={onNewChat}>
+              Новый чат
+            </Button>
+          </div>
         </div>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Поиск по чатам"
-          className="w-full border border-ga-border dark:border-ga-darkBorder rounded-xl px-4 py-2.5 text-base text-ga-text dark:text-ga-darkText bg-white dark:bg-ga-darkInput placeholder:text-ga-text dark:text-ga-darkText-secondary focus:ring-2 focus:ring-ga-primary outline-none"
+          className="w-full rounded-xl border border-ga-border bg-ga-bg px-4 py-2.5 text-base text-ga-text outline-none placeholder:text-ga-textSecondary focus:ring-2 focus:ring-ga-primary dark:border-ga-darkBorder dark:bg-ga-darkInput dark:text-ga-darkText dark:placeholder:text-ga-darkTextSecondary"
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {isLoading ? (
           Array.from({ length: 8 }).map((_, index) => (
             <ChatListItemSkeleton key={index} />
           ))
         ) : isError ? (
-          <div className="p-6 flex flex-col items-center gap-4">
-            <p className="text-base text-center text-ga-text dark:text-ga-darkText-secondary">
+          <div className="flex flex-col items-center gap-4 p-6">
+            <p className="text-center text-base text-ga-text dark:text-ga-darkTextSecondary">
               {quotaExceeded
                 ? 'Достигнут лимит тарифа «Разработчик». Повысьте тариф в личном кабинете GREEN-API.'
                 : 'Не удалось загрузить чаты.'}
@@ -107,7 +115,7 @@ function ChatSidebarComponent({
             )}
           </div>
         ) : filtered.length === 0 ? (
-          <p className="p-6 text-base text-center text-ga-text dark:text-ga-darkText-secondary">
+          <p className="p-6 text-center text-base text-ga-text dark:text-ga-darkTextSecondary">
             {chats.length === 0
               ? 'Создайте первый чат по номеру телефона.'
               : 'Ничего не найдено.'}

@@ -10,7 +10,6 @@ import { Button } from '@/shared/ui/Button';
 interface MobileDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onToggleSidebar: () => void;
   onThemeToggle: () => void;
   onLogout: () => void;
 }
@@ -108,12 +107,12 @@ function ThemeIcon({ dark }: { dark: boolean }) {
 export function MobileDrawer({
   open,
   onOpenChange,
-  onToggleSidebar,
   onThemeToggle,
   onLogout,
 }: MobileDrawerProps) {
   const navigate = useNavigate();
   const theme = useInstanceUiStore((state) => state.theme);
+  const setSidebarOpen = useInstanceUiStore((state) => state.setSidebarOpen);
   const credentials = useCredentialsStore((state) => state.credentials);
 
   useEffect(() => {
@@ -156,7 +155,7 @@ export function MobileDrawer({
       />
 
       <aside
-        className="fixed inset-y-0 right-0 z-[60] flex w-[min(88vw,24rem)] flex-col border-l border-ga-border bg-white shadow-2xl dark:border-ga-darkBorder dark:bg-ga-darkPanel motion-safe:animate-in motion-safe:slide-in-from-right motion-safe:duration-200"
+        className="fixed inset-y-0 right-0 z-[60] flex w-[min(88vw,24rem)] flex-col border-l border-ga-border bg-ga-bg shadow-2xl dark:border-ga-darkBorder dark:bg-ga-darkPanel motion-safe:animate-in motion-safe:slide-in-from-right motion-safe:duration-200"
         role="dialog"
         aria-modal="true"
         aria-label="Мобильное меню"
@@ -194,7 +193,7 @@ export function MobileDrawer({
                   {credentials.idInstance}
                 </p>
 
-                <p className="mt-1 truncate text-xs text-ga-text-secondary dark:text-ga-darkText-secondary">
+                <p className="mt-1 truncate text-xs text-ga-textSecondary dark:text-ga-darkTextSecondary">
                   {credentials.messenger}
                 </p>
               </div>
@@ -210,6 +209,7 @@ export function MobileDrawer({
             variant="ghost"
             size="md"
             onClick={() => {
+              setSidebarOpen(true);
               navigate('/chats');
               close();
             }}
@@ -278,7 +278,7 @@ export function MobileDrawer({
               alt=""
               className="h-5 w-auto"
             />
-            <span className="text-sm font-medium text-ga-text-secondary dark:text-ga-darkText-secondary">
+            <span className="text-sm font-medium text-ga-textSecondary dark:text-ga-darkTextSecondary">
               GREEN-API Chat
             </span>
           </div>

@@ -22,7 +22,7 @@ export function EmojiPicker({ onEmojiSelect, open, onClose }: EmojiPickerProps) 
 
   return (
     <div
-      className="absolute bottom-full right-4 mb-2 z-40 w-72 max-h-64 overflow-y-auto rounded-xl border border-ga-border bg-white p-3 shadow-lg dark:border-ga-darkBorder dark:bg-ga-darkPanel"
+      className="absolute bottom-full left-0 mb-1 z-40 max-h-64 w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-ga-border bg-ga-bg p-3 shadow-lg dark:border-ga-darkBorder dark:bg-ga-darkPanel"
       role="dialog"
       aria-label="Выбор смайлика"
     >

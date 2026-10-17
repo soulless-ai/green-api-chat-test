@@ -27,7 +27,7 @@ export function ChatWindow() {
   const replaceMessage = useChatsStore((state) => state.replaceMessage);
   const markFailed = useChatsStore((state) => state.markFailed);
   const updatePreview = useChatsStore((state) => state.updatePreview);
-  const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
+  const setSidebarOpen = useInstanceUiStore((state) => state.setSidebarOpen);
   const isMobile = useIsMobile();
   const toast = useToast();
   const [draft, setDraft] = useState('');
@@ -162,14 +162,14 @@ export function ChatWindow() {
   }
 
   return (
-    <section className="flex-1 flex flex-col bg-ga-chatBg dark:bg-ga-darkChatBg">
-      <ChatHeader chatId={activeChatId} onBack={isMobile ? toggleSidebar : undefined} />
+    <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-ga-chatBg dark:bg-ga-darkChatBg">
+      <ChatHeader chatId={activeChatId} onBack={isMobile ? () => setSidebarOpen(true) : undefined} />
       {typingUsers.length > 0 && (
-        <div className="mt-2 text-sm font-medium text-ga-primary italic px-5">
+        <div className="mt-2 px-3 text-sm font-medium italic text-ga-primary sm:px-5">
           {typingUsers.join(', ')} печатает…
         </div>
       )}
-      <div ref={listRef} className="flex-1 overflow-y-auto px-5 py-4">
+      <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-4 sm:px-5">
         <MessageList messages={messages} isLoading={historyQuery.isLoading} onDelete={setDeleteConfirmMessageId} />
       </div>
       <MessageComposer

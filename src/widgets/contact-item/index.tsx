@@ -76,11 +76,11 @@ export function ContactItem({ contact }: ContactItemProps) {
           {contact.name ?? `+${phoneNumber}`}
         </div>
         {canWrite ? (
-          <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate">
+          <div className="text-sm text-ga-text dark:text-ga-darkTextSecondary truncate">
             +{phoneNumber}
           </div>
         ) : (
-          <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate">Без номера телефона</div>
+          <div className="text-sm text-ga-text dark:text-ga-darkTextSecondary truncate">Без номера телефона</div>
         )}
       </div>
       {canWrite ? (

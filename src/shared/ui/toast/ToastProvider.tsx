@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 interface Toast {
   id: string;
@@ -11,6 +11,12 @@ interface ToastContextValue {
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
+
+const TOAST_TYPE_CLASSES: Record<Toast['type'], string> = {
+  success: 'bg-ga-primary',
+  error: 'bg-ga-danger',
+  info: 'bg-ga-darkBorder',
+};
 
 export function useToast() {
   const value = useContext(ToastContext);
@@ -32,11 +38,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+      <div className="pointer-events-none fixed bottom-full left-0 mb-2 z-[100] flex flex-col items-end gap-2 sm:bottom-6 sm:right-6">
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`px-4 py-2 rounded-lg shadow text-white text-sm ${toast.type === 'error' ? 'bg-ga-danger' : toast.type === 'success' ? 'bg-ga-primary' : 'bg-ga-dark-border'}`}
+            role="status"
+            className={`pointer-events-auto max-w-xs rounded-xl px-4 py-2.5 text-sm font-medium text-white shadow-lg ${TOAST_TYPE_CLASSES[toast.type]} rounded-xl border border-ga-border bg-ga-bg p-3 shadow-lg dark:border-ga-darkBorder dark:bg-ga-darkPanel`}
           >
             {toast.message}
           </div>

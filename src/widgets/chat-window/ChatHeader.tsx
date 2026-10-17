@@ -14,8 +14,8 @@ export function ChatHeader({ chatId, onBack }: ChatHeaderProps) {
   if (!chat) return null;
 
   return (
-    <header className="bg-white dark:bg-ga-darkPanel border-b border-ga-border dark:border-ga-darkBorder px-5 py-4">
-      <div className="flex items-center gap-4">
+    <header className="border-b border-ga-border bg-ga-bg px-4 py-3 dark:border-ga-darkBorder dark:bg-ga-darkPanel sm:px-5 sm:py-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {isMobile && onBack && (
           <button
             onClick={onBack}
@@ -30,7 +30,7 @@ export function ChatHeader({ chatId, onBack }: ChatHeaderProps) {
         <Avatar src={chat.avatarUrl ?? undefined} name={chat.title} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="text-lg font-bold text-ga-text dark:text-ga-darkText truncate">{chat.title}</div>
-          <div className="text-sm text-ga-text dark:text-ga-darkText-secondary truncate">
+          <div className="text-sm text-ga-text dark:text-ga-darkTextSecondary truncate">
             {chat.phone ?? chat.chatId}
           </div>
         </div>

@@ -9,8 +9,20 @@ import { Skeleton } from '@/shared/ui/Skeleton';
 
 const PAGE_SIZE = 100;
 
-export function ContactsList() {
+function ContactsHeader() {
   const navigate = useNavigate();
+
+  return (
+    <header className="flex items-center justify-between gap-3 border-b border-ga-border px-4 py-3 dark:border-ga-darkBorder sm:px-5 sm:py-4">
+      <Button variant="outline" size="sm" onClick={() => navigate('/chats')}>
+        ← К чатам
+      </Button>
+      <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Контакты</h2>
+    </header>
+  );
+}
+
+export function ContactsList() {
   const credentials = useCredentialsStore((state) => state.credentials);
 
   const contactsQuery = useInfiniteQuery({
@@ -31,22 +43,17 @@ export function ContactsList() {
 
   if (contactsQuery.isFetching && !contactsQuery.data) {
     return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder flex items-center justify-between">
-          <Button variant="ghost" size="md" onClick={() => navigate('/chats')}>
-            ← Назад к чатам
-          </Button>
-          <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Контакты</h2>
-        </div>
-        <div className="flex flex-col space-y-1 px-5 py-4">
+      <div className="flex h-dvh flex-col overflow-hidden bg-ga-bg dark:bg-ga-darkBg">
+        <ContactsHeader />
+        <div className="flex-1 overflow-y-auto">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50">
-              <Skeleton width="36" height="36" className="rounded-full" />
+            <div key={i} className="flex items-center gap-4 border-b border-ga-border px-5 py-4 dark:border-ga-darkBorder/50">
+              <Skeleton width={36} height={36} className="rounded-full" />
               <div className="flex-1 min-w-0">
-                <Skeleton width="140" height="1.25em" />
-                <Skeleton width="200" height="1em" className="mt-1" />
+                <Skeleton width="45%" height="1.25rem" />
+                <Skeleton width="30%" height="1rem" className="mt-1" />
               </div>
-              <Skeleton width="80" height="1.25em" className="rounded-full" />
+              <Skeleton width={88} height={32} className="rounded-xl" />
             </div>
           ))}
         </div>
@@ -56,8 +63,11 @@ export function ContactsList() {
 
   if (!contactsQuery.data) {
     return (
-      <div className="flex flex-col h-full items-center justify-center pt-20">
-        <p className="text-base text-ga-text dark:text-ga-darkText-secondary">Не удалось загрузить контакты.</p>
+      <div className="flex h-dvh flex-col overflow-hidden bg-ga-bg dark:bg-ga-darkBg">
+        <ContactsHeader />
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-base text-ga-text dark:text-ga-darkTextSecondary">Не удалось загрузить контакты.</p>
+        </div>
       </div>
     );
   }
@@ -65,40 +75,37 @@ export function ContactsList() {
   const allContacts = contactsQuery.data.pages.flat();
   const isFetchingMore = contactsQuery.isFetching && contactsQuery.data.pages.length > 1;
 
-  if (allContacts.length === 0) {
-    return (
-      <div className="flex flex-col h-full items-center justify-center pt-20">
-        <p className="text-base text-ga-text dark:text-ga-darkText-secondary">Контакты не найдены.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-5 border-b border-ga-border dark:border-ga-darkBorder flex items-center justify-between">
-        <Button variant="ghost" size="md" onClick={() => navigate('/chats')}>
-          ← Назад к чатам
-        </Button>
-        <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Контакты</h2>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        {allContacts.map((contact) => (
-          <ContactItem key={contact.chatId} contact={contact} />
-        ))}
-        {contactsQuery.hasNextPage && (
-          <div className="p-4 flex justify-center">
-            <Button
-              variant="outline"
-              size="md"
-              onClick={() => contactsQuery.fetchNextPage()}
-              disabled={isFetchingMore}
-            >
-              {isFetchingMore ? <Skeleton width="16" height="16" className="mr-2 rounded-full" /> : null}
-              Загрузить еще
-            </Button>
+    <div className="flex h-dvh flex-col overflow-hidden bg-ga-bg dark:bg-ga-darkBg">
+      <ContactsHeader />
+
+      {allContacts.length === 0 ? (
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-base text-ga-text dark:text-ga-darkTextSecondary">Контакты не найдены.</p>
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 overflow-y-auto">
+            {allContacts.map((contact) => (
+              <ContactItem key={contact.chatId} contact={contact} />
+            ))}
           </div>
-        )}
-      </div>
+          {contactsQuery.hasNextPage && (
+            <div className="border-t border-ga-border p-4 dark:border-ga-darkBorder">
+              <Button
+                variant="outline"
+                size="md"
+                className="w-full"
+                onClick={() => contactsQuery.fetchNextPage()}
+                disabled={isFetchingMore}
+              >
+                {isFetchingMore ? <Skeleton width={16} height={16} className="mr-2 rounded-full" /> : null}
+                Загрузить ещё
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
