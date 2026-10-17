@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useInstanceUiStore } from '@/entities/instance/model/instance';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
@@ -18,6 +19,7 @@ import { useChatsStore, type Chat } from '@/entities/chat/model/chat';
 import type { ChatSummary } from '@/shared/api/green-api/types';
 
 export function ChatsPage() {
+  const navigate = useNavigate();
   const credentials = useCredentialsStore((state) => state.credentials);
   const clearCredentials = useCredentialsStore((state) => state.clear);
   const theme = useInstanceUiStore((state) => state.theme);
@@ -180,18 +182,36 @@ export function ChatsPage() {
               />
               <div className={`fixed inset-y-0 right-0 z-60 w-full max-w-md bg-white dark:bg-[#1f2223] border-l border-ga-dark-border shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-5 border-b border-ga-dark-border flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-ga-dark-text">Чаты</h2>
+                  <h2 className="text-lg font-bold text-ga-dark-text">Навигация</h2>
                   <button
                     onClick={toggleSidebar}
                     className="p-2.5 text-ga-dark-text hover:bg-ga-dark-border rounded-lg transition-colors"
-                    aria-label="Закрыть список чатов"
+                    aria-label="Закрыть навигацию"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
-                {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  <div className="p-4">
+                    <h3 className="text-sm font-semibold text-ga-dark-text-secondary uppercase tracking-wider mb-3">Чаты</h3>
+                    {chatsQuery.isLoading ? renderChatListSkeleton() : <ChatSidebar onNewChat={() => setNewChatOpen(true)} />}
+                  </div>
+                  <div className="px-4 pb-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        toggleSidebar();
+                        navigate('/contacts');
+                      }}
+                      className="w-full"
+                    >
+                      Контакты
+                    </Button>
+                  </div>
+                </div>
               </div>
             </>
           ) : (

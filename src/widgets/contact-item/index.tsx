@@ -34,7 +34,7 @@ export function ContactItem({ contact }: ContactItemProps) {
       const info = await getContactInfo(client, contact.chatId);
       return info?.avatar ?? null;
     },
-    staleTime: 1000 * 60 * 30,
+    staleTime: Infinity,
   });
 
   useEffect(() => {

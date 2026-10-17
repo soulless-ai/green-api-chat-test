@@ -1,31 +1,41 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useChatsStore } from '@/entities/chat/model/chat';
-import { messengerProfiles } from '@/shared/api/green-api/profiles';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getStateInstance } from '@/shared/api/repositories/instance.repository';
 import { receiveNotification, deleteNotification } from '@/shared/api/repositories/notifications.repository';
 import { mapNotificationToMessage } from '../lib/mapNotification';
 import { env } from '@/shared/config/env';
 
+const STATE_CHECK_INTERVAL = 30000;
+
 export function NotificationPoller() {
   const credentials = useCredentialsStore((state) => state.credentials);
   const queryClient = useQueryClient();
   const running = useRef(true);
+  const [state, setState] = useState<'authorized' | 'notAuthorized' | 'starting' | 'blocked' | 'sleepMode' | 'unknown' | null>(null);
 
   useEffect(() => {
     if (!credentials) return;
     running.current = true;
     const client = new GreenApiHttpClient(() => credentials);
-    const profile = messengerProfiles[credentials.messenger];
-    void profile;
+
+    let stateCheckTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const checkState = async () => {
+      const s = await getStateInstance(client).catch(() => 'unknown' as const);
+      setState(s);
+      return s;
+    };
 
     const run = async () => {
+      let currentState = await checkState();
+
       while (running.current) {
-        const state = await getStateInstance(client).catch(() => 'unknown' as const);
-        if (state !== 'authorized') {
-          await new Promise((resolve) => window.setTimeout(resolve, 5000));
+        if (currentState !== 'authorized') {
+          await new Promise((resolve) => window.setTimeout(resolve, STATE_CHECK_INTERVAL));
+          currentState = await checkState();
           continue;
         }
 
@@ -74,14 +84,20 @@ export function NotificationPoller() {
 
           await deleteNotification(client, notification.receiptId);
         } catch {
+          currentState = await checkState();
           await new Promise((resolve) => window.setTimeout(resolve, env.pollBackoffBaseMs));
         }
       }
+
+      if (stateCheckTimer) clearTimeout(stateCheckTimer);
     };
+
+    stateCheckTimer = window.setInterval(checkState, STATE_CHECK_INTERVAL);
 
     void run();
     return () => {
       running.current = false;
+      if (stateCheckTimer) clearTimeout(stateCheckTimer);
     };
   }, [credentials, queryClient]);
 
