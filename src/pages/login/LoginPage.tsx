@@ -45,7 +45,6 @@ export function LoginPage() {
         await setHttpApiSettings(client);
         try {
           const account = await getAccountSettings(client);
-          console.log('Account settings:', account);
           if (account) {
             setCredentials(
               {
@@ -56,7 +55,6 @@ export function LoginPage() {
             );
           }
         } catch {
-          // аватар не обязателен
         }
       }
     } catch (error) {

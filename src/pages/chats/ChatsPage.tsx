@@ -14,6 +14,7 @@ import { Button } from '@/shared/ui/Button';
 import { ChatListItem } from './components/ChatListItem';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import { getChats } from '@/shared/api/repositories/chats.repository';
+import { getAccountSettings } from '@/shared/api/repositories/instance.repository';
 import { useChatsStore, type Chat } from '@/entities/chat/model/chat';
 import type { ChatSummary } from '@/shared/api/green-api/types';
 
@@ -25,6 +26,8 @@ export function ChatsPage() {
   const sidebarOpen = useInstanceUiStore((state) => state.sidebarOpen);
   const toggleSidebar = useInstanceUiStore((state) => state.toggleSidebar);
   const updateChat = useChatsStore((state) => state.updateChat);
+  const setAvatarUrl = useChatsStore((state) => state.setAvatarUrl);
+  const setCredentials = useCredentialsStore((state) => state.setCredentials);
   const chats = useChatsStore((state) => state.chats);
   const isMobile = useIsMobile();
   const [newChatOpen, setNewChatOpen] = useState(false);
@@ -52,6 +55,28 @@ export function ChatsPage() {
     refetchInterval: 300000,
     retry: 1,
   });
+
+  const accountQuery = useQuery({
+    queryKey: ['account-settings'],
+    enabled: Boolean(credentials) && stateQuery.data === 'authorized',
+    queryFn: async () => {
+      if (!credentials) return null;
+      const client = new GreenApiHttpClient(() => credentials);
+      return getAccountSettings(client);
+    },
+    refetchInterval: 300000,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (accountQuery.data?.avatar && accountQuery.data.chatId) {
+      setAvatarUrl(accountQuery.data.chatId, accountQuery.data.avatar);
+      setCredentials(
+        { ...credentials!, avatarUrl: accountQuery.data.avatar },
+        true,
+      );
+    }
+  }, [accountQuery.data, credentials, setAvatarUrl, setCredentials]);
 
   useEffect(() => {
     if (!chatsQuery.data) return;
