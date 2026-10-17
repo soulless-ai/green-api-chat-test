@@ -33,10 +33,10 @@ function MessageBubbleSkeleton({
   return (
     <div className={`flex ${outgoing ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`w-56 max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+        className={`w-56 max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-sm sm:max-w-[70%] ${
           outgoing
-            ? 'bg-ga-messageCardOutBg dark:bg-ga-darkMessageCardOutBg'
-            : 'bg-ga-messageCardInBg dark:bg-ga-darkMessageCardInBg border border-ga-border dark:border-ga-darkBorder'
+            ? 'rounded-br-md bg-ga-messageCardOutBg dark:bg-ga-darkMessageCardOutBg'
+            : 'rounded-bl-md bg-ga-messageCardInBg dark:bg-ga-darkMessageCardInBg'
         }`}
       >
         {lines.map((width, index) => (
@@ -91,7 +91,7 @@ export function MessageList({ messages, isLoading, onDelete }: MessageListProps)
       {messagesWithDates.map((message, index) => (
         <React.Fragment key={`${message.dateLabel ?? message.id}-${index}`}>
           {message.dateLabel ? (
-            <div key="date" className="my-3 flex items-center text-center">
+            <div key="date" className="my-3 flex items-center text-center justify-center">
               <span className="px-3 py-0.5 rounded-full text-xs font-semibold text-ga-text dark:text-ga-darkTextSecondary bg-ga-bg dark:bg-ga-darkPanel border border-ga-border dark:border-ga-darkBorder">
                 {message.dateLabel}
               </span>

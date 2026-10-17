@@ -10,7 +10,7 @@ const VARIANT_CLASSES: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
     'bg-ga-primary text-white hover:bg-brand-600 active:bg-brand-700 disabled:opacity-60 disabled:pointer-events-none',
   danger:
-    'bg-ga-danger dark:bg-ga-darkDanger text-white hover:bg-ga-danger/90 active:bg-ga-danger disabled:opacity-60 disabled:pointer-events-none',
+    'bg-ga-danger dark:bg-ga-darkDanger text-white hover:bg-ga-dangerHover dark:hover:bg-ga-darkDangerHover active:bg-ga-dangerHover disabled:opacity-60 disabled:pointer-events-none',
   ghost:
     'bg-transparent text-ga-text dark:text-ga-darkText hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 active:bg-ga-border dark:active:bg-ga-darkBorder disabled:opacity-60 disabled:pointer-events-none',
   outline:
@@ -36,7 +36,7 @@ export function Button({
     <button
       type="button"
       disabled={disabled || loading}
-      className={`inline-flex items-center rounded-xl font-medium transition-colors ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className ?? ''}`}
+      className={`inline-flex items-center rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ga-primary focus-visible:ring-offset-1 dark:focus-visible:ring-offset-ga-darkBg ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className ?? ''}`}
       {...props}
     >
       {loading ? (
