@@ -84,7 +84,7 @@ export function ChatWindow() {
         store.updatePreview(last.chatId, preview, last.timestamp);
       }
     }
-  }, [activeChatId, historyQuery.data, credentials, chat]);
+  }, [activeChatId, historyQuery.data]);
 
   const readChatId = chat?.chatId;
 

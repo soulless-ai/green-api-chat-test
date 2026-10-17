@@ -53,6 +53,10 @@ export function mergeMessages(current: Message[], history: Message[]): Message[]
       continue;
     }
 
+    if (existing.isDeleted) {
+      continue;
+    }
+
     if (incoming.isDeleted) {
       byId.set(incoming.id, {
         ...existing,
@@ -65,14 +69,19 @@ export function mergeMessages(current: Message[], history: Message[]): Message[]
       continue;
     }
 
-    if (existing.isDeleted) {
-      continue;
-    }
-
     const status =
       STATUS_RANK[incoming.status] >= STATUS_RANK[existing.status]
         ? incoming.status
         : existing.status;
+
+    const unchanged =
+      existing.status === status &&
+      existing.text === incoming.text &&
+      existing.timestamp === incoming.timestamp &&
+      existing.senderName === incoming.senderName &&
+      existing.direction === incoming.direction;
+
+    if (unchanged) continue;
 
     byId.set(incoming.id, { ...existing, ...incoming, status });
   }

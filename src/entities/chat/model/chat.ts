@@ -96,11 +96,18 @@ export const useChatsStore = create<ChatsState>()(
           activeChatId: state.activeChatId === id ? null : state.activeChatId,
         })),
       updatePreview: (chatId, preview, at) =>
-        set((state) => ({
-          chats: state.chats.map((chat) =>
-            chat.chatId === chatId ? { ...chat, lastMessagePreview: preview, lastMessageAt: at } : chat,
-          ),
-        })),
+        set((state) => {
+          const index = state.chats.findIndex((chat) => chat.chatId === chatId);
+          const chat = state.chats[index];
+
+          if (!chat) return state;
+          if (chat.lastMessagePreview === preview && chat.lastMessageAt === at) return state;
+
+          const chats = [...state.chats];
+          chats[index] = { ...chat, lastMessagePreview: preview, lastMessageAt: at };
+
+          return { chats };
+        }),
       setAvatarUrl: (chatId, avatarUrl) =>
         set((state) => ({
           chats: state.chats.map((chat) => (chat.chatId === chatId ? { ...chat, avatarUrl } : chat)),
@@ -147,6 +154,17 @@ export const useChatsStore = create<ChatsState>()(
               ? { ...item, isDeleted: true, text: '', mediaUrl: undefined, fileName: undefined }
               : item,
           );
+
+          const current = state.messagesByChat[chatId];
+
+          if (
+            current &&
+            current.length === normalized.length &&
+            current.every((item, index) => item === normalized[index])
+          ) {
+            return state;
+          }
+
           return { messagesByChat: { ...state.messagesByChat, [chatId]: normalized } };
         }),
       upsertMessage: (chatId, message) =>
@@ -156,14 +174,21 @@ export const useChatsStore = create<ChatsState>()(
           return { messagesByChat: { ...state.messagesByChat, [chatId]: [...current, message] } };
         }),
       updateMessageStatus: (chatId, messageId, status) =>
-        set((state) => ({
-          messagesByChat: {
-            ...state.messagesByChat,
-            [chatId]: (state.messagesByChat[chatId] ?? []).map((item) =>
-              item.id === messageId ? { ...item, status } : item,
-            ),
-          },
-        })),
+        set((state) => {
+          const current = state.messagesByChat[chatId] ?? [];
+          const target = current.find((item) => item.id === messageId);
+
+          if (!target || target.status === status) return state;
+
+          return {
+            messagesByChat: {
+              ...state.messagesByChat,
+              [chatId]: current.map((item) =>
+                item.id === messageId ? { ...item, status } : item,
+              ),
+            },
+          };
+        }),
       replaceMessage: (chatId, oldId, message) =>
         set((state) => {
           const current = state.messagesByChat[chatId] ?? [];
@@ -172,25 +197,35 @@ export const useChatsStore = create<ChatsState>()(
           return { messagesByChat: { ...state.messagesByChat, [chatId]: replaced } };
         }),
       markFailed: (chatId, messageId) =>
-        set((state) => ({
-          messagesByChat: {
-            ...state.messagesByChat,
-            [chatId]: (state.messagesByChat[chatId] ?? []).map((item) =>
-              item.id === messageId ? { ...item, status: 'failed' } : item,
-            ),
-          },
-        })),
+        set((state) => {
+          const current = state.messagesByChat[chatId] ?? [];
+          const target = current.find((item) => item.id === messageId);
+
+          if (!target || target.status === 'failed') return state;
+
+          return {
+            messagesByChat: {
+              ...state.messagesByChat,
+              [chatId]: current.map((item) =>
+                item.id === messageId ? { ...item, status: 'failed' } : item,
+              ),
+            },
+          };
+        }),
       markMessageDeleted: (chatId, messageId) =>
         set((state) => {
-          const deletedMessageIds = state.deletedMessageIds.includes(messageId)
+          const alreadyTracked = state.deletedMessageIds.includes(messageId);
+          const current = state.messagesByChat[chatId] ?? [];
+          const target = current.find((item) => item.id === messageId);
+          const needsTombstone = Boolean(target && !target.isDeleted);
+
+          if (alreadyTracked && !needsTombstone) return state;
+
+          const deletedMessageIds = alreadyTracked
             ? state.deletedMessageIds
             : [...state.deletedMessageIds, messageId];
 
-          const current = state.messagesByChat[chatId] ?? [];
-
-          if (!current.some((item) => item.id === messageId)) {
-            return { deletedMessageIds };
-          }
+          if (!needsTombstone) return { deletedMessageIds };
 
           return {
             deletedMessageIds,
