@@ -115,6 +115,9 @@ export interface GreenApiNotification {
   instanceData?: { idInstance?: number; wid?: string };
   timestamp?: number;
   idMessage?: string;
+  chatId?: string;
+  status?: string;
+  statusData?: { status?: string; idMessage?: string };
   senderData?: {
     chatId?: string;
     chatName?: string;

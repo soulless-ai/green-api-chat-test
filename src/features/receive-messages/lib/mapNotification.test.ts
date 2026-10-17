@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapNotificationToMessage } from './mapNotification';
+import { mapNotificationToMessage, mapOutgoingStatusNotification } from './mapNotification';
 
 describe('mapNotificationToMessage', () => {
   it('maps incoming text notification', () => {
@@ -22,5 +22,63 @@ describe('mapNotificationToMessage', () => {
       messageData: { typeMessage: 'imageMessage' },
     });
     expect(result).toBeNull();
+  });
+});
+
+describe('mapOutgoingStatusNotification', () => {
+  it('reads top-level chatId and status', () => {
+    const result = mapOutgoingStatusNotification({
+      typeWebhook: 'outgoingMessageStatus',
+      chatId: '79991234567@c.us',
+      idMessage: 'ABC123',
+      status: 'read',
+    });
+    expect(result).toEqual({
+      chatId: '79991234567@c.us',
+      idMessage: 'ABC123',
+      status: 'read',
+    });
+  });
+
+  it('maps every GREEN-API status', () => {
+    const statuses: Array<[string, string]> = [
+      ['sent', 'sent'],
+      ['delivered', 'delivered'],
+      ['read', 'read'],
+      ['failed', 'failed'],
+      ['noAccount', 'failed'],
+    ];
+
+    statuses.forEach(([raw, expected]) => {
+      expect(
+        mapOutgoingStatusNotification({
+          typeWebhook: 'outgoingMessageStatus',
+          chatId: 'chat',
+          idMessage: '1',
+          status: raw,
+        })?.status,
+      ).toBe(expected);
+    });
+  });
+
+  it('ignores notifications without chatId or idMessage', () => {
+    expect(
+      mapOutgoingStatusNotification({
+        typeWebhook: 'outgoingMessageStatus',
+        idMessage: '1',
+        status: 'read',
+      }),
+    ).toBeNull();
+  });
+
+  it('ignores other webhook types', () => {
+    expect(
+      mapOutgoingStatusNotification({
+        typeWebhook: 'incomingMessageReceived',
+        chatId: 'chat',
+        idMessage: '1',
+        status: 'read',
+      }),
+    ).toBeNull();
   });
 });

@@ -5,7 +5,7 @@ import { useChatsStore } from '@/entities/chat/model/chat';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getStateInstance } from '@/shared/api/repositories/instance.repository';
 import { receiveNotification, deleteNotification } from '@/shared/api/repositories/notifications.repository';
-import { mapNotificationToMessage } from '../lib/mapNotification';
+import { mapNotificationToMessage, mapOutgoingStatusNotification } from '../lib/mapNotification';
 import { env } from '@/shared/config/env';
 
 const STATE_CHECK_INTERVAL = 60000;
@@ -55,16 +55,15 @@ export function NotificationPoller() {
           }
 
           const body = notification.body;
-          if (body.typeWebhook === 'outgoingMessageStatus') {
-            const status = String((body as { statusData?: { status?: string } }).statusData?.status ?? '').toLowerCase();
-            const mapped =
-              status === 'read' ? 'read' :
-              status === 'delivered' ? 'delivered' :
-              status === 'failed' ? 'failed' : 'sent';
-            const chatId = body.senderData?.chatId;
-            if (body.idMessage && chatId) {
-              useChatsStore.getState().updateMessageStatus(chatId, body.idMessage, mapped);
-            }
+          const statusUpdate = mapOutgoingStatusNotification(body);
+          if (statusUpdate) {
+            useChatsStore
+              .getState()
+              .updateMessageStatus(
+                statusUpdate.chatId,
+                statusUpdate.idMessage,
+                statusUpdate.status,
+              );
           }
 
           const message = mapNotificationToMessage(notification.body);
