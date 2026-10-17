@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapNotificationToMessage, mapOutgoingStatusNotification } from './mapNotification';
+import { mapDeletedMessageNotification, mapNotificationToMessage, mapOutgoingStatusNotification } from './mapNotification';
 
 describe('mapNotificationToMessage', () => {
   it('maps incoming text notification', () => {
@@ -78,6 +78,34 @@ describe('mapOutgoingStatusNotification', () => {
         chatId: 'chat',
         idMessage: '1',
         status: 'read',
+      }),
+    ).toBeNull();
+  });
+});
+
+describe('mapDeletedMessageNotification', () => {
+  it('reads stanzaId from a deleted message webhook', () => {
+    const result = mapDeletedMessageNotification({
+      typeWebhook: 'incomingMessageReceived',
+      senderData: { chatId: '79991234567@c.us' },
+      messageData: {
+        typeMessage: 'deletedMessage',
+        deletedMessageData: { stanzaId: 'ABC123' },
+      },
+    });
+
+    expect(result).toEqual({ chatId: '79991234567@c.us', messageId: 'ABC123' });
+  });
+
+  it('ignores regular messages', () => {
+    expect(
+      mapDeletedMessageNotification({
+        typeWebhook: 'incomingMessageReceived',
+        senderData: { chatId: 'chat' },
+        messageData: {
+          typeMessage: 'textMessage',
+          textMessageData: { textMessage: 'hi' },
+        },
       }),
     ).toBeNull();
   });

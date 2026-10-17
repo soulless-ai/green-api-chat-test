@@ -5,7 +5,7 @@ import { useChatsStore } from '@/entities/chat/model/chat';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getStateInstance } from '@/shared/api/repositories/instance.repository';
 import { receiveNotification, deleteNotification } from '@/shared/api/repositories/notifications.repository';
-import { mapNotificationToMessage, mapOutgoingStatusNotification } from '../lib/mapNotification';
+import { mapNotificationToMessage, mapOutgoingStatusNotification, mapDeletedMessageNotification } from '../lib/mapNotification';
 import { env } from '@/shared/config/env';
 
 const STATE_CHECK_INTERVAL = 60000;
@@ -64,6 +64,14 @@ export function NotificationPoller() {
                 statusUpdate.idMessage,
                 statusUpdate.status,
               );
+          }
+
+          const deleted = mapDeletedMessageNotification(body);
+          if (deleted) {
+            useChatsStore
+              .getState()
+              .markMessageDeleted(deleted.chatId, deleted.messageId);
+            void queryClient.invalidateQueries({ queryKey: ['chat-history', deleted.chatId] });
           }
 
           const message = mapNotificationToMessage(notification.body);

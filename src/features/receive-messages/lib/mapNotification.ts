@@ -36,7 +36,36 @@ export function mapOutgoingStatusNotification(
   };
 }
 
+interface DeletedMessageUpdate {
+  chatId: string;
+  messageId: string;
+}
+
+export function mapDeletedMessageNotification(
+  notification: GreenApiNotification,
+): DeletedMessageUpdate | null {
+  const isDeleted =
+    notification.messageData?.typeMessage === 'deletedMessage' ||
+    notification.typeWebhook === 'deletedMessage' ||
+    notification.typeWebhook === 'incomingDeletedMessage' ||
+    notification.typeWebhook === 'outgoingDeletedMessage';
+
+  if (!isDeleted) return null;
+
+  const chatId = notification.chatId ?? notification.senderData?.chatId;
+  const messageId =
+    notification.messageData?.deletedMessageData?.stanzaId ??
+    notification.deletedMessageData?.stanzaId ??
+    notification.idMessage;
+
+  if (!chatId || !messageId) return null;
+
+  return { chatId, messageId };
+}
+
 export function mapNotificationToMessage(notification: GreenApiNotification): Message | null {
+  if (notification.messageData?.typeMessage === 'deletedMessage') return null;
+
   const timestamp = notification.timestamp ?? Math.floor(Date.now() / 1000);
 
   if (notification.typeWebhook === 'incomingMessageReceived') {
@@ -54,7 +83,11 @@ export function mapNotificationToMessage(notification: GreenApiNotification): Me
     };
   }
 
-  if (notification.typeWebhook === 'outgoingMessageReceived' || notification.typeWebhook === 'outgoingApiMessageReceived') {
+  if (
+    notification.typeWebhook === 'outgoingMessageReceived' ||
+    notification.typeWebhook === 'outgoingAPIMessageReceived' ||
+    notification.typeWebhook === 'outgoingApiMessageReceived'
+  ) {
     const chatId = notification.senderData?.chatId;
     const text = notification.messageData?.textMessageData?.textMessage ?? notification.messageData?.extendedTextMessageData?.text;
     if (!chatId || !text) return null;

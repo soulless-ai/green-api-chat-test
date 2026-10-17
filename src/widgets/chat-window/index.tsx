@@ -6,6 +6,7 @@ import { useInstanceUiStore } from '@/entities/instance/model/instance';
 import { GreenApiHttpClient } from '@/shared/api/http/client';
 import { getChatHistory, sendTyping, readChat } from '@/shared/api/repositories/chats.repository';
 import { sendMessage } from '@/shared/api/repositories/messages.repository';
+import { mapHistoryItem, mergeMessages, collectDeletedHistoryIds } from '@/features/receive-messages/lib/mapHistory';
 import { createTempId } from '@/shared/lib/id';
 import { useToast } from '@/shared/ui/toast/ToastProvider';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
@@ -22,10 +23,10 @@ export function ChatWindow() {
   const credentials = useCredentialsStore((state) => state.credentials);
   const activeChatId = useChatsStore((state) => state.activeChatId);
   const messagesByChat = useChatsStore((state) => state.messagesByChat);
-  const setMessages = useChatsStore((state) => state.setMessages);
   const upsertMessage = useChatsStore((state) => state.upsertMessage);
   const replaceMessage = useChatsStore((state) => state.replaceMessage);
   const markFailed = useChatsStore((state) => state.markFailed);
+  const markMessageDeleted = useChatsStore((state) => state.markMessageDeleted);
   const updatePreview = useChatsStore((state) => state.updatePreview);
   const setSidebarOpen = useInstanceUiStore((state) => state.setSidebarOpen);
   const isMobile = useIsMobile();
@@ -41,42 +42,52 @@ export function ChatWindow() {
     queryKey: ['chat-history', activeChatId],
     enabled: Boolean(credentials && activeChatId),
     queryFn: async () => {
-      if (!credentials || !activeChatId || !chat) return [];
+      if (!credentials || !activeChatId || !chat) {
+        return { messages: [] as Message[], deletedIds: [] as string[] };
+      }
       const client = new GreenApiHttpClient(() => credentials);
       const items = await getChatHistory(client, chat.chatId, 100);
-      return items.map((item) => {
-        const text = item.textMessage ?? item.extendedTextMessage?.text;
-        if (!text) return null;
-        return {
-          id: item.idMessage,
-          chatId: item.chatId,
-          direction: item.type === 'outgoing' ? 'out' : 'in',
-          text,
-          timestamp: item.timestamp,
-          status: item.type === 'outgoing' ? (item.statusMessage === 'read' ? 'read' : item.statusMessage === 'delivered' ? 'delivered' : 'sent') : 'delivered',
-          senderName: item.senderName ?? item.senderContactName,
-        };
-      }).filter(Boolean) as Message[];
+      return {
+        messages: items
+          .map(mapHistoryItem)
+          .filter((item): item is Message => item !== null),
+        deletedIds: collectDeletedHistoryIds(items),
+      };
     },
+    refetchInterval: 20000,
   });
 
   useEffect(() => {
     if (!activeChatId || !historyQuery.data) return;
-    const current = messagesByChat[activeChatId] ?? [];
-    if (current.length === 0) {
-      setMessages(activeChatId, historyQuery.data);
-    } else {
-      const merged = [...current];
-      historyQuery.data.forEach((item) => {
-        if (!merged.some((existing) => existing.id === item.id)) merged.push(item);
-      });
-      merged.sort((a, b) => a.timestamp - b.timestamp);
-      setMessages(activeChatId, merged);
+
+    const { messages: historyMessages, deletedIds } = historyQuery.data;
+    const store = useChatsStore.getState();
+
+    for (const id of deletedIds) {
+      store.markMessageDeleted(activeChatId, id);
     }
+
+    const current = store.messagesByChat[activeChatId] ?? [];
+    const merged = mergeMessages(current, historyMessages);
+    store.setMessages(activeChatId, merged);
+
+    const last = merged[merged.length - 1];
+
+    if (last) {
+      const existing = store.chats.find((item) => item.chatId === last.chatId);
+
+      if (!existing?.lastMessageAt || last.timestamp >= existing.lastMessageAt) {
+        const preview = last.isDeleted
+          ? 'Сообщение удалено'
+          : `${last.direction === 'out' ? 'Вы: ' : ''}${last.text}`;
+        store.updatePreview(last.chatId, preview, last.timestamp);
+      }
+    }
+
     if (credentials && chat) {
       readChat(new GreenApiHttpClient(() => credentials), chat.chatId).catch(() => {});
     }
-  }, [activeChatId, historyQuery.data, setMessages, credentials, chat]);
+  }, [activeChatId, historyQuery.data, credentials, chat]);
 
   const sendMutation = useMutation({
     mutationFn: async (text: string) => {
@@ -148,9 +159,19 @@ export function ChatWindow() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmMessageId || !credentials || !chat || !activeChatId) return;
+    const messageId = deleteConfirmMessageId;
     try {
-      await deleteMessage(new GreenApiHttpClient(() => credentials), chat.chatId, deleteConfirmMessageId);
-      setMessages(activeChatId, (messagesByChat[activeChatId] ?? []).filter((m: Message) => m.id !== deleteConfirmMessageId));
+      await deleteMessage(new GreenApiHttpClient(() => credentials), chat.chatId, messageId);
+      markMessageDeleted(activeChatId, messageId);
+
+      const target = (useChatsStore.getState().messagesByChat[activeChatId] ?? []).find(
+        (item) => item.id === messageId,
+      );
+
+      if (target && target.timestamp >= (chat.lastMessageAt ?? 0)) {
+        updatePreview(chat.chatId, 'Сообщение удалено', target.timestamp);
+      }
+
       setDeleteConfirmMessageId(null);
     } catch {
       setDeleteConfirmMessageId(null);

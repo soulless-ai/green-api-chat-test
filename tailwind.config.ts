@@ -42,6 +42,7 @@ export default {
           dangerHover: '#b01f29',
           darkDanger: '#d1242f',
           darkDangerHover: '#e04a54',
+          darkDangerText: '#ff7b7b',
           readTick: '#53bdeb',
           darkReadTick: '#53bdeb',
           darkBorder: '#313131',

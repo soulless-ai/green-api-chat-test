@@ -15,12 +15,14 @@ export interface Chat {
   lastMessageAt?: number;
   avatarUrl?: string | null;
   unreadCount?: number;
+  isLocal?: boolean;
 }
 
 interface ChatsState {
   chats: Chat[];
   activeChatId: string | null;
   messagesByChat: Record<string, Message[]>;
+  deletedMessageIds: string[];
   contacts: Contact[];
   setActiveChat: (id: string | null) => void;
   addChat: (chat: Chat) => void;
@@ -35,6 +37,7 @@ interface ChatsState {
   updateMessageStatus: (chatId: string, messageId: string, status: Message['status']) => void;
   replaceMessage: (chatId: string, oldId: string, message: Message) => void;
   markFailed: (chatId: string, messageId: string) => void;
+  markMessageDeleted: (chatId: string, messageId: string) => void;
 }
 
 export const useChatsStore = create<ChatsState>()(
@@ -43,11 +46,14 @@ export const useChatsStore = create<ChatsState>()(
       chats: [],
       activeChatId: null,
       messagesByChat: {},
+      deletedMessageIds: [],
       contacts: [],
       setActiveChat: (id) => set({ activeChatId: id }),
       addChat: (chat) =>
         set((state) => ({
-          chats: state.chats.some((item) => item.chatId === chat.chatId) ? state.chats : [chat, ...state.chats],
+          chats: state.chats.some((item) => item.chatId === chat.chatId)
+            ? state.chats
+            : [{ ...chat, isLocal: chat.isLocal ?? true }, ...state.chats],
         })),
       updateChat: (chat) =>
         set((state) => {
@@ -100,27 +106,49 @@ export const useChatsStore = create<ChatsState>()(
           chats: state.chats.map((chat) => (chat.chatId === chatId ? { ...chat, avatarUrl } : chat)),
         })),
       setChatsList: (chats: Chat[]) =>
-        set((state) => ({
-          chats: chats.map((chat) => {
+        set((state) => {
+          const mapped = chats.map((chat) => {
             const existing = state.chats.find(
               (item) => item.chatId === chat.chatId,
             );
 
             if (!existing) return chat;
 
+            const keepExistingPreview =
+              (existing.lastMessageAt ?? 0) >= (chat.lastMessageAt ?? 0);
+
             return {
               ...chat,
               createdAt: existing.createdAt,
               avatarUrl: existing.avatarUrl ?? chat.avatarUrl,
-              lastMessagePreview:
-                existing.lastMessagePreview ?? chat.lastMessagePreview,
-              lastMessageAt: existing.lastMessageAt ?? chat.lastMessageAt,
+              lastMessagePreview: keepExistingPreview
+                ? existing.lastMessagePreview ?? chat.lastMessagePreview
+                : chat.lastMessagePreview ?? existing.lastMessagePreview,
+              lastMessageAt: keepExistingPreview
+                ? existing.lastMessageAt ?? chat.lastMessageAt
+                : chat.lastMessageAt ?? existing.lastMessageAt,
             };
-          }),
-        })),
+          });
+
+          const localOnly = state.chats.filter(
+            (existing) =>
+              existing.isLocal &&
+              !chats.some((chat) => chat.chatId === existing.chatId),
+          );
+
+          return { chats: [...localOnly, ...mapped] };
+        }),
       setContacts: (contacts) => set({ contacts }),
       setMessages: (chatId, messages) =>
-        set((state) => ({ messagesByChat: { ...state.messagesByChat, [chatId]: messages } })),
+        set((state) => {
+          const deleted = new Set(state.deletedMessageIds);
+          const normalized = messages.map((item) =>
+            deleted.has(item.id) && !item.isDeleted
+              ? { ...item, isDeleted: true, text: '', mediaUrl: undefined, fileName: undefined }
+              : item,
+          );
+          return { messagesByChat: { ...state.messagesByChat, [chatId]: normalized } };
+        }),
       upsertMessage: (chatId, message) =>
         set((state) => {
           const current = state.messagesByChat[chatId] ?? [];
@@ -152,10 +180,45 @@ export const useChatsStore = create<ChatsState>()(
             ),
           },
         })),
+      markMessageDeleted: (chatId, messageId) =>
+        set((state) => {
+          const deletedMessageIds = state.deletedMessageIds.includes(messageId)
+            ? state.deletedMessageIds
+            : [...state.deletedMessageIds, messageId];
+
+          const current = state.messagesByChat[chatId] ?? [];
+
+          if (!current.some((item) => item.id === messageId)) {
+            return { deletedMessageIds };
+          }
+
+          return {
+            deletedMessageIds,
+            messagesByChat: {
+              ...state.messagesByChat,
+              [chatId]: current.map((item) =>
+                item.id === messageId
+                  ? { ...item, isDeleted: true, text: '', mediaUrl: undefined, fileName: undefined }
+                  : item,
+              ),
+            },
+          };
+        }),
     }),
     {
       name: 'green-api-chats',
       storage: createJSONStorage(() => localStorage),
+      version: 2,
+      migrate: (persisted) => {
+        const state = (persisted ?? {}) as Partial<ChatsState>;
+        return {
+          chats: state.chats ?? [],
+          contacts: state.contacts ?? [],
+          activeChatId: null,
+          messagesByChat: {},
+          deletedMessageIds: [],
+        } as unknown as ChatsState;
+      },
     },
   ),
 );

@@ -36,6 +36,7 @@ export async function setHttpApiSettings(
       incomingWebhook: 'yes',
       outgoingWebhook: 'yes',
       stateWebhook: 'yes',
+      deletedMessageWebhook: 'yes',
     }),
   });
 }

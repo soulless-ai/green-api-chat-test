@@ -1,95 +1,92 @@
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
-import { GreenApiHttpClient } from '@/shared/api/http/client';
-import { getAvatar } from '@/shared/api/repositories/chats.repository';
+import { useChatAvatarQuery } from '@/entities/chat/api/useChatAvatarQuery';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { Skeleton } from '@/shared/ui/Skeleton';
+import { isPhoneLikeTitle, maskPhone } from '@/shared/lib/phone';
 import type { Contact } from '@/shared/api/green-api/types';
-import { useNavigate } from 'react-router-dom';
+import type { Chat } from '@/entities/chat/model/chat';
 
 interface ContactItemProps {
   contact: Contact;
+  onOpen: (chat: Chat) => void;
 }
 
-export function ContactItem({ contact }: ContactItemProps) {
-  const navigate = useNavigate();
+export function ContactItem({ contact, onOpen }: ContactItemProps) {
   const credentials = useCredentialsStore((state) => state.credentials);
-  const addChat = useChatsStore((state) => state.addChat);
-  const setActiveChat = useChatsStore((state) => state.setActiveChat);
   const setAvatarUrl = useChatsStore((state) => state.setAvatarUrl);
 
+  const chatId = contact.chatId;
+  const canWrite = Boolean(chatId);
   const phoneNumber = contact.phoneNumber ?? 0;
-  const canWrite = phoneNumber > 0;
-  const chatId = String(phoneNumber);
 
-  const avatarQuery = useQuery({
-    queryKey: ['contact-avatar', contact.chatId],
-    enabled: Boolean(credentials && contact.chatId),
-    queryFn: async () => {
-      if (!credentials || !contact.chatId) return null;
-      const client = new GreenApiHttpClient(() => credentials);
-      const avatar = await getAvatar(client, contact.chatId);
-      return avatar?.urlAvatar ?? null;
-    },
-    staleTime: Infinity,
-  });
+  const avatarQuery = useChatAvatarQuery(chatId || null, canWrite);
 
   useEffect(() => {
-    if (avatarQuery.data && contact.chatId) {
-      setAvatarUrl(contact.chatId, avatarQuery.data);
+    if (avatarQuery.data && chatId) {
+      setAvatarUrl(chatId, avatarQuery.data);
     }
-  }, [avatarQuery.data, contact.chatId, setAvatarUrl]);
+  }, [avatarQuery.data, chatId, setAvatarUrl]);
 
-  const handleClick = async () => {
+  const chatTitle =
+    contact.name || contact.contactName || (phoneNumber > 0 ? `+${phoneNumber}` : chatId);
+  const displayTitle = isPhoneLikeTitle(chatTitle) ? maskPhone(chatTitle) : chatTitle;
+  const displayPhone = phoneNumber > 0 ? maskPhone(String(phoneNumber)) : '';
+
+  const handleOpen = () => {
     if (!canWrite) return;
-    const existingChat = {
+
+    onOpen({
       id: chatId,
       chatId,
-      title: contact.name ?? `+${phoneNumber}`,
-      phone: String(phoneNumber),
+      title: chatTitle,
+      phone: phoneNumber > 0 ? String(phoneNumber) : undefined,
       messenger: credentials?.messenger ?? 'whatsapp',
       createdAt: Date.now(),
       avatarUrl: avatarQuery.data ?? null,
-    };
-    addChat(existingChat);
-    setActiveChat(chatId);
-    navigate('/chats');
+    });
   };
 
   return (
-    <div className="flex items-center gap-4 px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50 hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors cursor-pointer group"
-      onClick={handleClick}>
-      {avatarQuery.isLoading ? (
-        <Skeleton width="36" height="36" className="rounded-full" />
+    <div
+      role="button"
+      tabIndex={canWrite ? 0 : -1}
+      onClick={handleOpen}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleOpen();
+        }
+      }}
+      className="flex cursor-pointer items-center gap-4 border-b border-ga-border px-5 py-4 transition-colors hover:bg-ga-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ga-primary dark:border-ga-darkBorder/50 dark:hover:bg-ga-darkBorder/50"
+    >
+      {canWrite && avatarQuery.isPending ? (
+        <Skeleton width={36} height={36} className="shrink-0 rounded-full" />
       ) : (
-        <Avatar
-          src={avatarQuery.data ?? undefined}
-          name={contact.name ?? `+${phoneNumber}`}
-          size="md"
-        />
+        <Avatar src={avatarQuery.data ?? undefined} name={chatTitle} size="md" />
       )}
-      <div className="flex-1 min-w-0">
-        <div className="text-base font-medium text-ga-text dark:text-ga-darkText truncate">
-          {contact.name ?? `+${phoneNumber}`}
+
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-base font-medium text-ga-text dark:text-ga-darkText">
+          {displayTitle}
         </div>
-        {canWrite ? (
-          <div className="text-sm text-ga-text dark:text-ga-darkTextSecondary truncate">
-            +{phoneNumber}
+        {displayPhone ? (
+          <div className="truncate text-sm text-ga-textSecondary dark:text-ga-darkTextSecondary">
+            {displayPhone}
           </div>
-        ) : (
-          <div className="text-sm text-ga-text dark:text-ga-darkTextSecondary truncate">Без номера телефона</div>
-        )}
+        ) : null}
       </div>
+
       {canWrite ? (
         <Button
           variant="primary"
           size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick();
+          className="shrink-0"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleOpen();
           }}
         >
           Написать

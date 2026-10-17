@@ -18,6 +18,16 @@ export interface CheckAccountResponse {
   reason?: string;
 }
 
+export interface CheckWhatsappResponse {
+  existsWhatsapp: boolean;
+  chatId?: string;
+  username?: string;
+  phoneNumber?: string;
+  fromCache?: boolean;
+  status?: boolean;
+  reason?: string;
+}
+
 export interface SendMessageResponse {
   idMessage: string;
 }
@@ -39,9 +49,11 @@ export interface GetAvatarResponse {
 
 export interface Contact {
   chatId: string;
+  id?: string;
   name?: string;
   contactName?: string;
   type?: string;
+  newChatId?: string;
   phoneNumber?: number;
 }
 
@@ -103,6 +115,9 @@ export interface ChatHistoryItem {
   senderContactName?: string;
   statusMessage?: string;
   sendByApi?: boolean;
+  stanzaId?: string;
+  deletedMessageData?: { stanzaId?: string };
+  editedMessageData?: { stanzaId?: string; textMessage?: string };
 }
 
 export interface ReceiveNotificationResponse {
@@ -130,7 +145,11 @@ export interface GreenApiNotification {
     typeMessage?: string;
     textMessageData?: { textMessage?: string };
     extendedTextMessageData?: { text?: string };
+    deletedMessageData?: { stanzaId?: string };
+    editedMessageData?: { stanzaId?: string; textMessage?: string };
   };
+  deletedMessageData?: { stanzaId?: string };
+  editedMessageData?: { stanzaId?: string; textMessage?: string };
 }
 
 export interface ApiError extends Error {

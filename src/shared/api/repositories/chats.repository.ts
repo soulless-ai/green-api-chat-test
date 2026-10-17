@@ -1,7 +1,23 @@
 import type { GreenApiHttpClient } from '@/shared/api/http/client';
-import type { CheckAccountResponse, ChatHistoryItem, ChatSummary, GetAvatarResponse, SendFileByUploadResponse } from '@/shared/api/green-api/types';
+import type { CheckAccountResponse, CheckWhatsappResponse, ChatHistoryItem, ChatSummary, GetAvatarResponse, SendFileByUploadResponse } from '@/shared/api/green-api/types';
 
 export async function checkAccount(client: GreenApiHttpClient, phoneNumber: string, force = false): Promise<CheckAccountResponse> {
+  const credentials = client.credentials();
+
+  if (credentials.messenger === 'whatsapp') {
+    const result = await client.request<CheckWhatsappResponse>('POST', 'checkWhatsapp', {
+      body: JSON.stringify({ phoneNumber: Number(phoneNumber) }),
+    });
+
+    const phoneChatId = String(result?.phoneNumber ?? '').replace(/[[\]]/g, '').trim();
+
+    return {
+      exist: Boolean(result?.existsWhatsapp),
+      chatId: phoneChatId || result?.chatId || '',
+      fromCache: Boolean(result?.fromCache),
+    };
+  }
+
   return (await client.request<CheckAccountResponse>('POST', 'checkAccount', {
     body: JSON.stringify({ phoneNumber: Number(phoneNumber), force }),
   })) as CheckAccountResponse;
@@ -16,6 +32,16 @@ export async function getChatHistory(client: GreenApiHttpClient, chatId: string,
 
 export async function getChats(client: GreenApiHttpClient, count?: number): Promise<ChatSummary[]> {
   const result = await client.request<ChatSummary[]>('GET', 'getChats', {}, count ? { count } : undefined);
+  return Array.isArray(result) ? result : [];
+}
+
+export async function getLastIncomingMessages(client: GreenApiHttpClient, count?: number): Promise<ChatHistoryItem[]> {
+  const result = await client.request<ChatHistoryItem[]>('GET', 'lastIncomingMessages', {}, count ? { count } : undefined);
+  return Array.isArray(result) ? result : [];
+}
+
+export async function getLastOutgoingMessages(client: GreenApiHttpClient, count?: number): Promise<ChatHistoryItem[]> {
+  const result = await client.request<ChatHistoryItem[]>('GET', 'lastOutgoingMessages', {}, count ? { count } : undefined);
   return Array.isArray(result) ? result : [];
 }
 

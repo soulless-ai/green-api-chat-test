@@ -1,3 +1,4 @@
+
 import type { Message } from '@/entities/message/model/message';
 import { formatTime } from '@/shared/lib/date';
 
@@ -10,7 +11,7 @@ function SingleCheckIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-3 w-3"
+      className="h-3.5 w-3.5 shrink-0"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -23,11 +24,11 @@ function SingleCheckIcon() {
   );
 }
 
-function DoubleCheckIcon({ className }: { className?: string }) {
+function DoubleCheckIcon({ className = '' }: { className?: string }) {
   return (
     <svg
       aria-hidden="true"
-      className={`h-3 w-4 ${className ?? ''}`}
+      className={`h-3.5 w-4 shrink-0 ${className}`}
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -45,7 +46,7 @@ function ClockIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-3 w-3"
+      className="h-3.5 w-3.5 shrink-0"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -63,7 +64,7 @@ function FailedIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-3 w-3 text-ga-danger dark:text-ga-darkDanger"
+      className="h-3.5 w-3.5 shrink-0 text-ga-danger dark:text-ga-darkDangerText"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -77,71 +78,157 @@ function FailedIcon() {
   );
 }
 
+const STATUS_LABELS: Record<Message['status'], string> = {
+  pending: 'Отправляется',
+  failed: 'Ошибка отправки',
+  delivered: 'Доставлено',
+  read: 'Прочитано',
+  sent: 'Отправлено',
+};
+
 function MessageStatus({ status }: { status: Message['status'] }) {
+  const label = STATUS_LABELS[status] ?? 'Статус сообщения';
+
+  let icon;
+
   switch (status) {
     case 'pending':
-      return <ClockIcon />;
+      icon = <ClockIcon />;
+      break;
+
     case 'failed':
-      return <FailedIcon />;
+      icon = <FailedIcon />;
+      break;
+
     case 'read':
-      return <DoubleCheckIcon className="text-ga-readTick dark:text-ga-darkReadTick" />;
+      icon = (
+        <DoubleCheckIcon className="text-ga-readTick dark:text-ga-darkReadTick" />
+      );
+      break;
+
     case 'delivered':
-      return <DoubleCheckIcon />;
+      icon = <DoubleCheckIcon />;
+      break;
+
     default:
-      return <SingleCheckIcon />;
+      icon = <SingleCheckIcon />;
   }
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center"
+      title={label}
+      aria-label={label}
+    >
+      {icon}
+    </span>
+  );
+}
+
+function DeleteIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      viewBox="0 0 24 24"
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="m19 6-1 14H6L5 6" />
+      <path d="M10 11v5M14 11v5" />
+    </svg>
+  );
 }
 
 export function MessageItem({ message, onDelete }: MessageItemProps) {
   const isOutgoing = message.direction === 'out';
+  const isDeleted = Boolean(message.isDeleted);
+  const hasMedia = Boolean(message.mediaUrl) && !isDeleted;
+  const hasText = Boolean(message.text) && !isDeleted;
 
   return (
-    <div className={`group flex ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-sm sm:max-w-[70%] ${
+    <div
+      className={`group flex min-w-0 w-full ${
+        isOutgoing ? 'justify-end' : 'justify-start'
+      }`}
+    >
+      <article
+        className={`relative min-w-20 max-w-[88%] overflow-hidden rounded-2xl shadow-sm sm:max-w-[75%] lg:max-w-[65%] ${
           isOutgoing
             ? 'rounded-br-md bg-ga-messageCardOutBg text-ga-text dark:bg-ga-darkMessageCardOutBg dark:text-ga-darkText'
             : 'rounded-bl-md bg-ga-messageCardInBg text-ga-text dark:bg-ga-darkMessageCardInBg dark:text-ga-darkText'
         }`}
       >
-        {message.direction === 'in' && message.senderName ? (
-          <div className="mb-1 text-xs font-semibold text-ga-primary">{message.senderName}</div>
-        ) : null}
+        <div className="px-3.5 pt-2.5">
+          {!isOutgoing && message.senderName && (
+            <div className="mb-1.5 truncate text-xs font-semibold text-ga-primary">
+              {message.senderName}
+            </div>
+          )}
+        </div>
 
-        {message.mediaUrl ? (
-          <div className="flex flex-col gap-2">
+        {hasMedia && message.mediaUrl && (
+          <div className="px-1.5">
             <img
               src={message.mediaUrl}
-              alt={message.text}
-              className="max-h-64 max-w-full cursor-pointer rounded-xl object-cover"
+              alt={hasText ? message.text : 'Изображение в сообщении'}
+              loading="lazy"
+              decoding="async"
+              className="block h-auto max-h-80 max-w-full rounded-xl object-contain"
             />
-            {message.text ? (
-              <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
-                {message.text}
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
-            {message.text}
           </div>
         )}
 
-        <div className="mt-1 flex items-center justify-end gap-1 text-[11px] leading-none text-ga-textSecondary dark:text-ga-darkTextSecondary">
-          <span>{formatTime(message.timestamp)}</span>
-          {isOutgoing ? <MessageStatus status={message.status} /> : null}
-          {isOutgoing && onDelete ? (
+        {hasText && (
+          <div className="px-3.5 pb-1 pt-1">
+            <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14px] leading-[1.5rem] sm:text-[15px]">
+              {message.text}
+            </p>
+          </div>
+        )}
+
+        {isDeleted && (
+          <div className="px-3.5 pb-1 pt-1">
+            <p className="text-[14px] italic leading-[1.5rem] text-ga-textSecondary dark:text-ga-darkTextSecondary sm:text-[15px]">
+              Сообщение удалено
+            </p>
+          </div>
+        )}
+
+        {!hasText && !hasMedia && !isDeleted && (
+          <p className="px-3.5 pb-1 text-sm text-ga-textSecondary dark:text-ga-darkTextSecondary">
+            Пустое сообщение
+          </p>
+        )}
+
+        <footer className="flex min-h-7 items-center justify-end gap-1.5 px-2.5 pb-1.5 pl-3.5 pt-0.5">
+          <time
+            dateTime={new Date(message.timestamp).toISOString()}
+            className="whitespace-nowrap text-[11px] leading-4 text-ga-textSecondary dark:text-ga-darkTextSecondary"
+          >
+            {formatTime(message.timestamp)}
+          </time>
+
+          {isOutgoing && !isDeleted && <MessageStatus status={message.status} />}
+
+          {isOutgoing && onDelete && !isDeleted && (
             <button
               type="button"
               onClick={onDelete}
-              className="-mr-1 ml-0.5 rounded p-1 opacity-100 transition-opacity hover:text-ga-danger focus-visible:outline-none focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
               aria-label="Удалить сообщение"
+              title="Удалить сообщение"
+              className="ml-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ga-danger transition-colors hover:bg-ga-danger/10 hover:text-ga-dangerHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ga-primary dark:text-ga-darkDangerText dark:hover:bg-ga-danger/20 dark:hover:text-ga-darkDangerText"
             >
-              ✕
+              <DeleteIcon />
             </button>
-          ) : null}
-        </div>
-      </div>
+          )}
+        </footer>
+      </article>
     </div>
   );
 }

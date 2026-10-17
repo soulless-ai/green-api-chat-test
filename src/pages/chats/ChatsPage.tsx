@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useCredentialsStore } from '@/entities/credentials/model/credentials';
 import { useInstanceUiStore } from '@/entities/instance/model/instance';
 import {
@@ -13,15 +12,16 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/shared/lib/useIsMobile';
 import { Header } from '@/shared/ui/Header';
-import { ChatSidebar } from '@/widgets/chat-sidebar';
+import { Sidebar } from '@/widgets/sidebar';
 import { ChatWindow } from '@/widgets/chat-window';
 import { NewChatDialog } from '@/widgets/new-chat-dialog';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useChatsQuery } from '@/entities/chat/api/useChatsQuery';
+import { useChatLastMessagesQuery } from '@/entities/chat/api/useChatLastMessagesQuery';
 import { summaryToChat } from '@/entities/chat/lib/chat';
+import type { Chat } from '@/entities/chat/model/chat';
 
 export function ChatsPage() {
-  const navigate = useNavigate();
   const credentials = useCredentialsStore((state) => state.credentials);
   const clearCredentials = useCredentialsStore((state) => state.clear);
   const theme = useInstanceUiStore((state) => state.theme);
@@ -31,6 +31,7 @@ export function ChatsPage() {
   const setAvatarUrl = useChatsStore((state) => state.setAvatarUrl);
   const setChatsList = useChatsStore((state) => state.setChatsList);
   const setActiveChat = useChatsStore((state) => state.setActiveChat);
+  const addChat = useChatsStore((state) => state.addChat);
   const setCredentials = useCredentialsStore((state) => state.setCredentials);
   const isMobile = useIsMobile();
   const [newChatOpen, setNewChatOpen] = useState(false);
@@ -44,9 +45,14 @@ export function ChatsPage() {
     [setActiveChat, setSidebarOpen],
   );
 
-  const handleOpenContacts = useCallback(() => {
-    navigate('/contacts');
-  }, [navigate]);
+  const handleOpenContact = useCallback(
+    (chat: Chat) => {
+      addChat(chat);
+      setActiveChat(chat.id);
+      setSidebarOpen(false);
+    },
+    [addChat, setActiveChat, setSidebarOpen],
+  );
 
   const stateQuery = useQuery({
     queryKey: ['instance-state'],
@@ -76,20 +82,58 @@ export function ChatsPage() {
   });
 
   const chatsQuery = useChatsQuery();
+  const lastMessagesQuery = useChatLastMessagesQuery();
+  const storedChats = useChatsStore((state) => state.chats);
   const messenger = credentials?.messenger ?? 'whatsapp';
 
-  const chats = useMemo(
+  const apiChats = useMemo(
     () =>
-      (chatsQuery.data ?? []).map((summary) =>
-        summaryToChat(summary, messenger),
-      ),
-    [chatsQuery.data, messenger],
+      (chatsQuery.data ?? []).map((summary) => {
+        const chat = summaryToChat(summary, messenger);
+        const digits = summary.id.split('@')[0] ?? summary.id;
+        const last =
+          lastMessagesQuery.data?.[summary.id] ??
+          lastMessagesQuery.data?.[digits];
+
+        if (!last) return chat;
+
+        return {
+          ...chat,
+          lastMessagePreview: `${last.direction === 'out' ? 'Вы: ' : ''}${last.text}`,
+          lastMessageAt: last.timestamp,
+        };
+      }),
+    [chatsQuery.data, messenger, lastMessagesQuery.data],
   );
+
+  const displayChats = useMemo(() => {
+    const localOnly = storedChats.filter(
+      (item) =>
+        item.isLocal &&
+        !apiChats.some((chat) => chat.chatId === item.chatId),
+    );
+
+    const merged = apiChats.map((chat) => {
+      const stored = storedChats.find((item) => item.chatId === chat.chatId);
+
+      if (!stored || !stored.lastMessagePreview) return chat;
+
+      return (stored.lastMessageAt ?? 0) >= (chat.lastMessageAt ?? 0)
+        ? {
+            ...chat,
+            lastMessagePreview: stored.lastMessagePreview,
+            lastMessageAt: stored.lastMessageAt,
+          }
+        : chat;
+    });
+
+    return [...localOnly, ...merged];
+  }, [storedChats, apiChats]);
 
   useEffect(() => {
     if (!chatsQuery.data || !credentials) return;
-    setChatsList(chats);
-  }, [chatsQuery.data, chats, credentials, setChatsList]);
+    setChatsList(apiChats);
+  }, [chatsQuery.data, apiChats, credentials, setChatsList]);
 
   const handleRetryChats = useCallback(() => {
     void chatsQuery.refetch();
@@ -145,14 +189,14 @@ export function ChatsPage() {
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-ga-bg dark:bg-ga-darkBg md:flex-row">
         {isMobile ? (
           sidebarOpen ? (
-            <ChatSidebar
-              chats={chats}
+            <Sidebar
+              chats={displayChats}
               isLoading={chatsQuery.isLoading}
               isError={chatsQuery.isError}
               quotaExceeded={chatsQuotaExceeded}
               onRetry={handleRetryChats}
               onNewChat={handleNewChat}
-              onOpenContacts={handleOpenContacts}
+              onOpenContact={handleOpenContact}
               onSelectChat={handleSelectChat}
             />
           ) : (
@@ -161,14 +205,14 @@ export function ChatsPage() {
         ) : (
           <>
             <div className="hidden w-80 shrink-0 flex-col md:flex">
-              <ChatSidebar
-                chats={chats}
+              <Sidebar
+                chats={displayChats}
                 isLoading={chatsQuery.isLoading}
                 isError={chatsQuery.isError}
                 quotaExceeded={chatsQuotaExceeded}
                 onRetry={handleRetryChats}
                 onNewChat={handleNewChat}
-                onOpenContacts={handleOpenContacts}
+                onOpenContact={handleOpenContact}
                 onSelectChat={handleSelectChat}
               />
             </div>

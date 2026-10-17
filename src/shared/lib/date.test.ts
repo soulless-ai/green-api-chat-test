@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatRelativeDate, formatTime } from './date';
+import { formatChatListTimestamp, formatRelativeDate, formatTime } from './date';
 
 describe('formatTime', () => {
   it('returns empty string for falsy timestamp', () => {
@@ -43,5 +43,31 @@ describe('formatRelativeDate', () => {
   it('supports millisecond timestamps', () => {
     const ms = new Date(2026, 0, 15, 12, 0, 0).getTime();
     expect(formatRelativeDate(ms, now)).toBe('Сегодня');
+  });
+});
+
+describe('formatChatListTimestamp', () => {
+  const now = new Date(2026, 0, 15, 12, 0, 0);
+  const atNoon = (year: number, month: number, day: number) =>
+    Math.floor(new Date(year, month, day, 12, 0, 0).getTime() / 1000);
+
+  it('returns empty string for falsy timestamp', () => {
+    expect(formatChatListTimestamp(0, now)).toBe('');
+  });
+
+  it('shows the time for today', () => {
+    expect(formatChatListTimestamp(atNoon(2026, 0, 15), now)).toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it('shows Вчера for yesterday', () => {
+    expect(formatChatListTimestamp(atNoon(2026, 0, 14), now)).toBe('Вчера');
+  });
+
+  it('shows a short weekday within the last week', () => {
+    expect(formatChatListTimestamp(atNoon(2026, 0, 12), now)).toBe('Пн');
+  });
+
+  it('shows a numeric date for older messages', () => {
+    expect(formatChatListTimestamp(atNoon(2026, 0, 1), now)).toBe('01.01.26');
   });
 });

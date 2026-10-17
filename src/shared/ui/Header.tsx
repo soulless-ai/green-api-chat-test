@@ -153,7 +153,7 @@ export function Header({
                   className="max-w-36 truncate text-sm font-medium text-ga-text dark:text-ga-darkText"
                   title={credentials.idInstance}
                 >
-                  {credentials.idInstance}
+                  {credentials.messenger == 'whatsapp' ? 'WhatsApp' : credentials.messenger == 'telegram' ? 'Telegram' : credentials.messenger == 'max' ? 'Max' : credentials.messenger}
                 </p>
               </div>
 

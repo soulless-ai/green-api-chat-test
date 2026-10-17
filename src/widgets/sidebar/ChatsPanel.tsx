@@ -8,27 +8,25 @@ const INITIAL_VISIBLE = 20;
 const VISIBLE_STEP = 20;
 const PLACEHOLDER_ROWS = 3;
 
-interface ChatSidebarProps {
+interface ChatsPanelProps {
   chats: Chat[];
   isLoading: boolean;
   isError: boolean;
   quotaExceeded: boolean;
   onRetry: () => void;
   onNewChat: () => void;
-  onOpenContacts: () => void;
   onSelectChat: (chatId: string) => void;
 }
 
-function ChatSidebarComponent({
+function ChatsPanelComponent({
   chats,
   isLoading,
   isError,
   quotaExceeded,
   onRetry,
   onNewChat,
-  onOpenContacts,
   onSelectChat,
-}: ChatSidebarProps) {
+}: ChatsPanelProps) {
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const activeChatId = useChatsStore((state) => state.activeChatId);
@@ -75,25 +73,22 @@ function ChatSidebarComponent({
   }, [hasMore, filtered.length]);
 
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col border-r border-ga-border bg-ga-bg dark:border-ga-darkBorder dark:bg-ga-darkPanel">
-      <div className="space-y-3 border-b border-ga-border p-4 dark:border-ga-darkBorder sm:p-5">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-lg font-bold text-ga-text dark:text-ga-darkText">Чаты</h2>
-          <div className="flex items-center gap-1.5">
-            <Button variant="outline" size="sm" onClick={onOpenContacts}>
-              Контакты
-            </Button>
-            <Button variant="primary" size="sm" onClick={onNewChat}>
-              Новый чат
-            </Button>
-          </div>
-        </div>
+    <>
+      <div className="flex gap-2 border-b border-ga-border p-3 dark:border-ga-darkBorder sm:p-4">
         <input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
           placeholder="Поиск по чатам"
-          className="w-full rounded-xl border border-ga-border bg-ga-bg px-4 py-2.5 text-base text-ga-text outline-none placeholder:text-ga-textSecondary focus:ring-2 focus:ring-ga-primary dark:border-ga-darkBorder dark:bg-ga-darkInput dark:text-ga-darkText dark:placeholder:text-ga-darkTextSecondary"
+          className="min-w-0 flex-1 rounded-xl border border-ga-border bg-ga-bg px-4 py-2.5 text-base text-ga-text outline-none placeholder:text-ga-textSecondary focus:ring-2 focus:ring-ga-primary dark:border-ga-darkBorder dark:bg-ga-darkInput dark:text-ga-darkText dark:placeholder:text-ga-darkTextSecondary"
         />
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={onNewChat}
+          className="shrink-0 whitespace-nowrap"
+        >
+          Новый чат
+        </Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -141,8 +136,8 @@ function ChatSidebarComponent({
           </>
         )}
       </div>
-    </aside>
+    </>
   );
 }
 
-export const ChatSidebar = memo(ChatSidebarComponent);
+export const ChatsPanel = memo(ChatsPanelComponent);

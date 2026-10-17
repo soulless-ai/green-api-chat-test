@@ -31,7 +31,7 @@ export function ChatHeader({ chatId, onBack }: ChatHeaderProps) {
         <div className="flex-1 min-w-0">
           <div className="text-lg font-bold text-ga-text dark:text-ga-darkText truncate">{chat.title}</div>
           <div className="text-sm text-ga-text dark:text-ga-darkTextSecondary truncate">
-            {chat.phone ?? chat.chatId}
+            {(chat.phone && `+${chat.phone}`) ?? chat.chatId}
           </div>
         </div>
       </div>

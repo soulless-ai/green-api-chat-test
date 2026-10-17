@@ -7,6 +7,7 @@ export interface Message {
   status: 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
   senderName?: string;
   isOptimistic?: boolean;
+  isDeleted?: boolean;
   mediaUrl?: string;
   fileName?: string;
   fileSize?: number;

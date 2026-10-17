@@ -2,12 +2,16 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { useChatsStore } from '@/entities/chat/model/chat';
 import { useChatAvatarQuery } from '@/entities/chat/api/useChatAvatarQuery';
 import { isGroupChatId } from '@/entities/chat/lib/chat';
-import { formatPhone } from '@/shared/lib/phone';
+import { formatChatListTimestamp } from '@/shared/lib/date';
+import { isPhoneLikeTitle, maskPhone } from '@/shared/lib/phone';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Skeleton } from '@/shared/ui/Skeleton';
 import type { Chat } from '@/entities/chat/model/chat';
 
 const AVATAR_SIZE = 36;
+
+const EMPTY_PREVIEW_GROUP = 'В группе пока нет сообщений';
+const EMPTY_PREVIEW_PRIVATE = 'Начните переписку';
 
 interface ChatListItemProps {
   chat: Chat;
@@ -56,13 +60,13 @@ function ChatListItemComponent({ chat, isActive, onSelect }: ChatListItemProps) 
   const avatarUrl = avatarQuery.data ?? chat.avatarUrl ?? undefined;
   const showAvatarSkeleton = !avatarUrl && avatarQuery.isPending;
 
-  const subtitle = chat.lastMessagePreview
+  const title = isPhoneLikeTitle(chat.title) ? maskPhone(chat.title) : chat.title;
+  const preview = chat.lastMessagePreview
     ? chat.lastMessagePreview
-    : chat.phone
-      ? formatPhone(chat.phone)
-      : isGroup
-        ? 'Группа'
-        : chat.chatId;
+    : isGroup
+      ? EMPTY_PREVIEW_GROUP
+      : EMPTY_PREVIEW_PRIVATE;
+  const timestamp = chat.lastMessageAt ? formatChatListTimestamp(chat.lastMessageAt) : '';
 
   useEffect(() => {
     if (!isActive || !avatarUrl || avatarUrl === chat.avatarUrl) return;
@@ -77,8 +81,8 @@ function ChatListItemComponent({ chat, isActive, onSelect }: ChatListItemProps) 
       onClick={() => onSelect(chat.id)}
       className={`w-full text-left px-5 py-4 border-b border-ga-border dark:border-ga-darkBorder/50 hover:bg-ga-border/50 dark:hover:bg-ga-darkBorder/50 transition-colors ${
         isActive
-          ? 'bg-ga-primary/10 border-l-2 border-ga-primary'
-          : 'border-l-2 border-transparent'
+          ? 'bg-ga-primary/10 border-b-2 border-ga-primary'
+          : 'border-b-2 border-transparent'
       }`}
     >
       <div className="flex items-center gap-4">
@@ -93,19 +97,28 @@ function ChatListItemComponent({ chat, isActive, onSelect }: ChatListItemProps) 
         )}
 
         <div className="flex-1 min-w-0">
-          <div className="text-base leading-6 font-medium text-ga-text dark:text-ga-darkText truncate">
-            {chat.title}
+          <div className="flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate text-base leading-6 font-medium text-ga-text dark:text-ga-darkText">
+              {title}
+            </span>
+            {timestamp ? (
+              <span className="shrink-0 text-xs text-ga-textSecondary dark:text-ga-darkTextSecondary">
+                {timestamp}
+              </span>
+            ) : null}
           </div>
-          <div className="text-sm leading-5 text-ga-text dark:text-ga-darkTextSecondary truncate mt-0.5">
-            {subtitle}
+
+          <div className="mt-0.5 flex items-center gap-2">
+            <span className="min-w-0 flex-1 truncate text-sm leading-5 text-ga-text dark:text-ga-darkTextSecondary">
+              {preview}
+            </span>
+            {chat.unreadCount && chat.unreadCount > 0 ? (
+              <span className="shrink-0 rounded-full bg-ga-primary px-2.5 py-0.5 text-xs font-bold text-white">
+                {chat.unreadCount}
+              </span>
+            ) : null}
           </div>
         </div>
-
-        {chat.unreadCount && chat.unreadCount > 0 ? (
-          <span className="flex-shrink-0 bg-ga-primary text-white text-xs font-bold rounded-full px-2.5 py-0.5">
-            {chat.unreadCount}
-          </span>
-        ) : null}
       </div>
     </button>
   );

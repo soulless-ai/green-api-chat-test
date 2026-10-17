@@ -52,25 +52,6 @@ function HomeIcon() {
   );
 }
 
-function ContactsIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-5 w-5 shrink-0 text-ga-primary"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M17 20H7m10 0v-2a5 5 0 00-10 0v2m10 0h5v-2a3 3 0 00-5.36-1.86M7 20H2v-2a3 3 0 015.36-1.86M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-    </svg>
-  );
-}
-
 function ThemeIcon({ dark }: { dark: boolean }) {
   return (
     <svg
@@ -136,11 +117,6 @@ export function MobileDrawer({
   }, [open, onOpenChange]);
 
   const close = () => onOpenChange(false);
-
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    close();
-  };
 
   if (!open) return null;
 
@@ -217,16 +193,6 @@ export function MobileDrawer({
           >
             <HomeIcon />
             Чаты
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="md"
-            onClick={() => handleNavigation('/contacts')}
-            className="w-full justify-start gap-3 px-4 py-3 text-left"
-          >
-            <ContactsIcon />
-            Контакты
           </Button>
 
           <div className="my-3 border-t border-ga-border dark:border-ga-darkBorder" />
